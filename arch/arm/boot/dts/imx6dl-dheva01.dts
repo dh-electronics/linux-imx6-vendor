@@ -1,0 +1,26 @@
+/*
+ * Copyright (C) 2013 Freescale Semiconductor, Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ */
+
+/dts-v1/;
+
+#include "imx6dl.dtsi"
+#include "imx6qdl-dheva01.dtsi"
+
+/ {
+	model = "Freescale i.MX6 DualLite DHCOM Premium Developer Kit";
+	compatible = "fsl,imx6dl-dheva01.dtsi", "fsl,imx6dl";
+};
+
+&mxcfb1 {
+	status = "okay";
+};
+/*
+&mxcfb2 {
+	status = "okay";
+};*/
+

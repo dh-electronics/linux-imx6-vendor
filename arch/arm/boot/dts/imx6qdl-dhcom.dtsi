@@ -1,0 +1,362 @@
+/*
+ * Copyright 2014 DH electronics GmbH
+ * Copyright 2012 Freescale Semiconductor, Inc.
+ * Copyright 2011 Linaro Ltd.
+ *
+ * The code contained herein is licensed under the GNU General Public
+ * License. You may obtain a copy of the GNU General Public License
+ * Version 2 or later at the following locations:
+ *
+ * http://www.opensource.org/licenses/gpl-license.html
+ * http://www.gnu.org/copyleft/gpl.html
+ */
+
+/ {
+	aliases {
+		mxcfb0 = &mxcfb1;
+		mxcfb1 = &mxcfb2;
+		mxcfb2 = &mxcfb3;
+		mxcfb3 = &mxcfb4;
+	};
+	
+	memory {
+		reg = <0x10000000 0x40000000>;				// 1GB DDR3 RAM
+	};
+	
+	regulators {
+		compatible = "simple-bus";
+
+		reg_usb_otg_vbus: usb_otg_vbus {
+			compatible = "regulator-fixed";
+			regulator-name = "usb_otg_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio3 22 0>;				// OTG ID pin
+			enable-active-high;
+		};
+
+		reg_usb_h1_vbus: usb_h1_vbus {
+			compatible = "regulator-fixed";
+			regulator-name = "usb_h1_vbus";
+			regulator-min-microvolt = <5000000>;
+			regulator-max-microvolt = <5000000>;
+			gpio = <&gpio3 31 0>;
+			enable-active-high;
+		};
+	};
+
+	/* TODO Audio */
+	/*
+	sound {								// Audio SGTL5000XNAA3/R2
+		compatible = "fsl,imx-audio-sgtl5000";
+		model = "sgtl5000-audio";
+		ssi-controller = <&ssi1>;
+		audio-codec = <&codec>;
+		audio-routing =
+			"Headphone Jack", "HPOUTL",
+			"Headphone Jack", "HPOUTR",
+			"Ext Spk", "SPKOUTL",
+			"Ext Spk", "SPKOUTR",
+			"MICBIAS", "AMIC",
+			"IN3R", "MICBIAS",
+			"DMIC", "MICBIAS",
+			"DMICDAT", "DMIC";
+		mux-int-port = <1>;
+		mux-ext-port = <3>;
+	};*/
+
+	mxcfb1: fb@0 {
+		compatible = "fsl,mxc_sdc_fb";
+		disp_dev = "lcd";
+		interface_pix_fmt = "RGB24";
+		mode_str ="DH_LCD_ID_13";
+		default_bpp = <32>;
+		int_clk = <0>;
+		late_init = <0>;
+		status = "disabled";
+	};
+
+	mxcfb2: fb@1 {
+		compatible = "fsl,mxc_sdc_fb";
+		disp_dev = "lcd";
+		interface_pix_fmt = "RGB24";
+		mode_str ="DH_LCD_ID_13";
+		default_bpp = <32>;
+		int_clk = <0>;
+		late_init = <0>;
+		status = "disabled";
+	};
+
+	mxcfb3: fb@2 {
+		compatible = "fsl,mxc_sdc_fb";
+		disp_dev = "hdmi";
+		interface_pix_fmt = "RGB24";
+		mode_str ="1920x1080M@60";
+		default_bpp = <24>;
+		int_clk = <0>;
+		late_init = <0>;
+		status = "disabled";
+	};
+
+	mxcfb4: fb@3 {
+		compatible = "fsl,mxc_sdc_fb";
+		disp_dev = "ldb";
+		interface_pix_fmt = "RGB666";
+		mode_str ="LDB-XGA";
+		default_bpp = <16>;
+		int_clk = <0>;
+		late_init = <0>;
+		status = "disabled";
+	};
+};
+
+
+&audmux {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_audmux_2>;
+	status = "okay";
+};
+
+&flexcan1 {								// CAN
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_flexcan1_3>;
+	status = "okay";
+};
+
+&ecspi1 {								// ********** SPI 1 **********
+	fsl,spi-num-chipselects = <4>;
+	cs-gpios = <&gpio2 30 1>, <0>, <&gpio4 11 1>, <0>;		// SS0, (SS1), SS2, (SS3)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi1_1>;
+	status = "okay";
+
+	s25fl116k@0 {							// SPI Flash: Spansion S25FL116K0PMFI010 (used to store bootloader)
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "spansion,s25fl116k", "m25p80";
+		spi-max-frequency = <50000000>;
+		reg = <0>;						// SS0
+		m25p,fast-read;
+	};
+};
+
+&ecspi2 {								// ********** SPI 2 **********
+	fsl,spi-num-chipselects = <4>;
+	cs-gpios = <&gpio5 29 1>, <0>, <0>, <0>;			// SS0, (SS1), (SS2), (SS3)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_ecspi2_1>;
+	status = "okay";
+};
+
+&fec {									// Ethernet 1 (PHY: SMSC LAN8710Ai)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_enet_4>;
+	phy-mode = "rmii";
+	phy-reset-gpios = <&gpio5 0 1>;
+	//phy-reset-duration = 1;					// 1ms is the default value
+	status = "okay";
+	//local-mac-address = [00 11 22 33 44 55];			// Is set by the bootloader
+};
+
+&gpu {
+	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
+};
+
+&i2c1 {									// ********** I2C 1 **********
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c1_1>;
+	status = "okay";
+};
+
+&i2c2 {									// ********** I2C 2 **********
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c2_2>;
+	status = "okay";
+};
+
+&i2c3 {									// ********** I2C 3 **********
+	clock-frequency = <100000>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c3_2>;
+	status = "okay";
+
+	/* TODO Audio */
+	/*
+	codec: sgtl5000@0a {						// Codec SGTL5000XNAA3/R2
+		compatible = "fsl,sgtl5000";
+		reg = <0x0a>;
+		clocks = <&clks 201>;
+		VDDA-supply = <&reg_audio>;
+		VDDIO-supply = <&reg_audio>;
+		VDDD-supply = <&reg_audio>;
+		gpio-cfg = <
+			0x0000 /* 0:Default *//* Remove reopen comment !!
+			0x0000 /* 1:Default *//*
+			0x0013 /* 2:FN_DMICCLK *//*
+			0x0000 /* 3:Default *//*
+			0x8014 /* 4:FN_DMICCDAT *//*
+			0x0000 /* 5:Default *//*
+		>;
+	};*/
+
+	/* TODO PMIC */
+	/*
+	pmic: ltc3676@3c {						// Power Management LTC3676EUJ#PBF
+		compatible = "ltc,ltc3676";
+		reg = <0x3c>;
+
+		regulators {
+			sw1_reg: ltc3676__sw1 {
+				regulator-min-microvolt = <1175000>;
+				regulator-max-microvolt = <1175000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			sw2_reg: ltc3676__sw2 {
+				regulator-min-microvolt = <1800000>;
+				regulator-max-microvolt = <1800000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			sw3_reg: ltc3676__sw3 {
+				regulator-min-microvolt = <1175000>;
+				regulator-max-microvolt = <1175000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			sw4_reg: ltc3676__sw4 {
+				regulator-min-microvolt = <1500000>;
+				regulator-max-microvolt = <1500000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			ldo2_reg: ltc3676__ldo2 {
+				regulator-min-microvolt = <2500000>;
+				regulator-max-microvolt = <2500000>;
+				regulator-boot-on;
+				regulator-always-on;
+			};
+
+			ldo4_reg: ltc3676__ldo4 {
+				regulator-min-microvolt = <3000000>;
+				regulator-max-microvolt = <3000000>;
+			};
+		};
+	};*/
+
+	tsc2004@49 {							// Touch controller TI TSC2014 (on Board)
+		compatible = "ti,tsc2004";
+		reg = <0x49>;
+		tsc_model =  <2004>;
+		interrupt-parent = <&gpio6>;
+		interrupts = <28 2>;
+		irq-gpios = <&gpio6 28 0>;
+		status = "disabled";
+	};
+
+	/* Will be replaced, because there is a address conflict with the RTC
+	/*
+	eeprom@50 {							// EEPROM Microchip 24AA02E48T-I/OT
+		compatible = "atmel,24c02";
+		reg = <0x50>;
+		pagesize = <8>;
+	};*/
+
+	/* Use internal rtc in default case */
+	/*
+	rtc@56 {							// Micro Crystal RV-3029-C3
+		device_type = "rtc";
+		compatible = "microc,rtc-rv3029c3", "microc,rtc-rv3029c2";
+		reg = <0x56>;
+	};*/
+};
+
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
+	hog {
+		pinctrl_hog: hoggrp {
+			fsl,pins = <
+				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x80000000	// Card detection for the SD card
+				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x80000000	// Card detection for the Mirco SD card (onBoard)
+				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x80000000	// USB Host 1 Power
+				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x80000000	// Touch Interrupt resistive
+			>;
+		};
+	};
+};
+
+&ssi1 {									// Used for sound
+	fsl,mode = "i2s-slave";
+	status = "okay";
+};
+
+&uart1 {								// UART 1 (FF)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart1_2>;
+	fsl,uart-has-rtscts;
+	status = "okay";
+};
+
+&uart4 {								// UART 3
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart4_2>;
+	status = "okay";
+};
+
+&uart5 {								// UART 2 (BT)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart5_1>;
+	fsl,uart-has-rtscts;
+	status = "okay";
+};
+
+&usbh1 {								// USB Host 1
+	vbus-supply = <&reg_usb_h1_vbus>;
+	status = "okay";
+	dr_mode = "host";
+};
+
+&usbotg {								// USB OTG
+	vbus-supply = <&reg_usb_otg_vbus>;
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usbotg_1>;
+	disable-over-current;
+	status = "okay";
+	dr_mode = "otg";						// "host", "peripheral" or "otg" default = "otg"
+};
+
+&usdhc2 {								// SD card
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2_2>;
+	cd-gpios = <&gpio6 16 0>;
+	fsl,wp-controller;
+	status = "okay";
+};
+
+&usdhc3 {								// Mirco SD card (onBoard)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc3_2>;
+	cd-gpios = <&gpio7 8 1>;
+	fsl,wp-controller;
+	status = "okay";
+};
+
+&usdhc4 {								// eMMC (onBoard)
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc4_1>;
+	non-removable;
+	bus-width = <8>;
+	//status = "okay";						// TODO: Uncomment it when it works
+};
+
+&vpu {
+	pu-supply = <&pu_dummy>;					// ldo-bypass:use pu_dummy if VDDSOC share with VDDPU
+};

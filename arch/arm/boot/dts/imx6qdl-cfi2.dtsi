@@ -1,0 +1,62 @@
+/*
+ * Copyright 2014 DH electronics GmbH
+ * Copyright 2012 Freescale Semiconductor, Inc.
+ * Copyright 2011 Linaro Ltd.
+ *
+ * The code contained herein is licensed under the GNU General Public
+ * License. You may obtain a copy of the GNU General Public License
+ * Version 2 or later at the following locations:
+ *
+ * http://www.opensource.org/licenses/gpl-license.html
+ * http://www.gnu.org/copyleft/gpl.html
+ */
+
+/ {
+};
+
+&ecspi1 {									// ********** SPI 1 **********
+	at45db321d@2 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "atmel,at45db321d", "atmel,at45", "atmel,dataflash";
+		spi-max-frequency = <25000000>;
+		reg = <2>;							// SS2
+	};
+};
+
+&ecspi2 {									// ********** SPI 2 **********
+	spidev@0 {								// ==> /dev/spidev1.0
+		compatible = "spidev";
+		reg = <0>;							// SS0
+		spi-max-frequency = <50000000>;
+		spi-cpha;							// Shifted clock phase (CPHA) mode
+		spi-cpol;							// Inverse clock polarity (CPOL) mode
+	};
+};
+
+/*
+&iomuxc {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
+	hog {
+		pinctrl_hog: hoggrp {
+			fsl,pins = <
+				MX6QDL_PAD_EIM_D27__GPIO3_IO27    0x80000000	// GPIO G -> Backlight Enable
+				MX6QDL_PAD_SD1_DAT3__PWM1_OUT     0x80000000	// PWM -> Backlight Enable
+				MX6QDL_PAD_KEY_ROW0__GPIO4_IO07   0x80000000	// GPIO H -> Touch Interrupt picoITX dh-touch
+				MX6QDL_PAD_DI0_PIN4__GPIO4_IO20   0x1b0b0	// GPIO F
+				MX6QDL_PAD_GPIO_4__GPIO1_IO04   0x80000000
+				MX6QDL_PAD_GPIO_5__GPIO1_IO05   0x80000000
+				MX6QDL_PAD_NANDF_D0__GPIO2_IO00 0x80000000
+				MX6QDL_PAD_NANDF_D1__GPIO2_IO01 0x80000000
+				MX6QDL_PAD_NANDF_D2__GPIO2_IO02 0x80000000
+				MX6QDL_PAD_NANDF_D3__GPIO2_IO03 0x80000000
+				MX6QDL_PAD_GPIO_0__CCM_CLKO1    0x130b0
+				MX6QDL_PAD_NANDF_CLE__GPIO6_IO07 0x80000000
+				MX6QDL_PAD_ENET_TXD1__GPIO1_IO29 0x80000000
+				MX6QDL_PAD_EIM_D22__GPIO3_IO22  0x80000000
+			>;
+		};
+	};
+};*/

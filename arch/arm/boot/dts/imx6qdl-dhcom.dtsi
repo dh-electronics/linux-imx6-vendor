@@ -158,11 +158,22 @@
 	//local-mac-address = [00 11 22 33 44 55];			// Is set by the bootloader
 };
 
+&gpc {
+	fsl,cpu_pupscr_sw2iso = <0xf>;
+	fsl,cpu_pupscr_sw = <0xf>;
+	fsl,cpu_pdnscr_iso2sw = <0x1>;
+	fsl,cpu_pdnscr_iso = <0x1>;
+	fsl,ldo-bypass = <1>; /* use ldo-bypass, u-boot will check it and configure */
+	fsl,wdog-reset = <1>; /* watchdog select of reset source */
+	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
+};
+
 &gpu {
 	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
 };
 
 &i2c1 {									// ********** I2C 1 **********
+									// ==> /dev/i2c-0
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c1_1>;
@@ -170,13 +181,15 @@
 };
 
 &i2c2 {									// ********** I2C 2 **********
+									// ==> /dev/i2c-1
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2_2>;
 	status = "okay";
 };
 
-&i2c3 {									// ********** I2C 3 **********
+&i2c3 {									// ****** I2C on Board *******
+									// ==> /dev/i2c-2
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c3_2>;
@@ -277,6 +290,10 @@
 	};*/
 };
 
+&weim {									// Memory interface is not active by default
+	status = "disable"; 
+};
+
 &iomuxc {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_hog>;
@@ -288,6 +305,7 @@
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x80000000	// Card detection for the Mirco SD card (onBoard)
 				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x80000000	// USB Host 1 Power
 				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x80000000	// Touch Interrupt resistive
+				MX6QDL_PAD_GPIO_9__WDOG1_B        0x80000000	// Watchdog pin
 			>;
 		};
 	};

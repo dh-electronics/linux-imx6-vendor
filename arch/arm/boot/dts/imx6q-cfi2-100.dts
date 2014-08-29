@@ -11,13 +11,9 @@
 
 #include "imx6q.dtsi"
 #include "imx6qdl-dhcom.dtsi"
-#include "imx6qdl-cfi2.dtsi"
+#include "imx6qdl-cfi2-100.dtsi"
 
 / {
-	model = "Freescale i.MX6 Quad DHCOM CFI2";
-	compatible = "fsl,imx6q-cfi2", "fsl,imx6q";
-};
-
-&sata {
-	status = "okay";
+	model = "Freescale i.MX6 Quad DHCOM CFI2-100";
+	compatible = "fsl,imx6q-cfi2-100", "fsl,imx6q";
 };

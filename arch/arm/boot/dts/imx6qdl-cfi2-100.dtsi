@@ -15,10 +15,12 @@
 };
 
 &ecspi1 {									// ********** SPI 1 **********
-	at45db321d@2 {
+	//pinctrl-0 = <&pinctrl_ecspi1_1>;					// DSE 40 Ohm
+	pinctrl-0 = <&pinctrl_ecspi1_3>;					// DSE 60 Ohm
+	at45db321x@2 {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "atmel,at45db321d", "atmel,at45", "atmel,dataflash";
+		compatible = "atmel,at45db321x", "atmel,at45", "atmel,dataflash";
 		spi-max-frequency = <25000000>;
 		reg = <2>;							// SS2
 	};

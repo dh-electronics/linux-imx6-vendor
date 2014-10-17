@@ -317,20 +317,20 @@
 };
 
 &uart1 {								// UART 1 (FF)
-	pinctrl-names = "default";
+	pinctrl-names = "default";					// ==> /dev/ttymxc0
 	pinctrl-0 = <&pinctrl_uart1_2>;
 	fsl,uart-has-rtscts;
 	status = "okay";
 };
 
-&uart4 {								// UART 3
-	pinctrl-names = "default";
+&uart4 {								// UART 3 (STD)
+	pinctrl-names = "default";					// ==> /dev/ttymxc3
 	pinctrl-0 = <&pinctrl_uart4_2>;
 	status = "okay";
 };
 
 &uart5 {								// UART 2 (BT)
-	pinctrl-names = "default";
+	pinctrl-names = "default";					// ==> /dev/ttymxc4
 	pinctrl-0 = <&pinctrl_uart5_1>;
 	fsl,uart-has-rtscts;
 	status = "okay";

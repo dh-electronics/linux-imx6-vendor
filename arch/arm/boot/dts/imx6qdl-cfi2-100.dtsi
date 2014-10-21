@@ -64,8 +64,8 @@
 		reg-names = "cfi2_general", "cfi2_misc", "cfi2_mux";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c022000
-				      0x00000000 0x1C092480 0x00000000>;
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c023000
+				      0x00000000 0x1C092680 0x00000000>;
 	};
 
 	uio_cfi2_uart0@0,0 {
@@ -74,8 +74,8 @@
 		reg-names = "cfi2_uart0";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c022000
-				      0x00000000 0x1C092480 0x00000000>;
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c023000
+				      0x00000000 0x1C092680 0x00000000>;
 	};
 
 	uio_cfi2_uart1@0,0 {
@@ -84,8 +84,8 @@
 		reg-names = "cfi2_uart1";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c022000
-				      0x00000000 0x1C092480 0x00000000>;
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c023000
+				      0x00000000 0x1C092680 0x00000000>;
 	};
 
 	uio_cfi2_uart2@0,0 {
@@ -94,8 +94,8 @@
 		reg-names = "cfi2_uart2";
 		#address-cells = <1>;
 		#size-cells = <1>;
-		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c022000
-				      0x00000000 0x1C092480 0x00000000>;
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x1c023000
+				      0x00000000 0x1C092680 0x00000000>;
 	};
 };
 

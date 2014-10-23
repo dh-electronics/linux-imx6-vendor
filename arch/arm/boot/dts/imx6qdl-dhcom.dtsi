@@ -372,7 +372,8 @@
 	pinctrl-0 = <&pinctrl_usdhc4_1>;
 	non-removable;
 	bus-width = <8>;
-	//status = "okay";						// TODO: Uncomment it when it works
+	no-1-8-v;
+	status = "okay";
 };
 
 &vpu {

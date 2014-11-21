@@ -36,6 +36,10 @@
 		spi1 = &ecspi2;
 		spi2 = &ecspi3;
 		spi3 = &ecspi4;
+		mmcblk0 = &usdhc2;
+		mmcblk1 = &usdhc3;
+		mmcblk2 = &usdhc4;
+		mmcblk3 = &usdhc1; /* unused at dhcom, put at last to be compatible with uboot */
 	};
 
 	intc: interrupt-controller@00a01000 {

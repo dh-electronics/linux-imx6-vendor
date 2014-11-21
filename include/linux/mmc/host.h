@@ -359,6 +359,8 @@ struct mmc_host {
 #endif
 
 	unsigned int		actual_clock;	/* Actual HC clock rate */
+	
+	unsigned int		devidx; /* preferred mmc block device index (mmcblkX) */
 
 	unsigned int		slotno;	/* used for sdio acpi binding */
 

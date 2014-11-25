@@ -152,7 +152,7 @@
 
 &iomuxc {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog>;
+	pinctrl-0 = <&pinctrl_hog_base &pinctrl_hog>;
 
 	hog {
 		pinctrl_hog: hoggrp {

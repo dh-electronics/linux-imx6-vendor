@@ -296,13 +296,13 @@
 
 &iomuxc {
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_hog>;
+	pinctrl-0 = <&pinctrl_hog_base>;
 
-	hog {
-		pinctrl_hog: hoggrp {
+	hog_base {
+		pinctrl_hog_base: hoggrp {
 			fsl,pins = <
-				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x80000000	// Card detection for the SD card
-				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x80000000	// Card detection for the Mirco SD card (onBoard)
+				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x120B0	// Card detection for the SD card
+				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onBoard)
 				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x80000000	// USB Host 1 Power
 				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x80000000	// Touch Interrupt resistive
 				MX6QDL_PAD_GPIO_9__WDOG1_B        0x80000000	// Watchdog pin

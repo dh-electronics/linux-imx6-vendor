@@ -188,7 +188,7 @@
 	status = "okay";
 };
 
-&i2c3 {									// ****** I2C on Board *******
+&i2c3 {									// ****** I2C onModule *******
 									// ==> /dev/i2c-2
 	clock-frequency = <100000>;
 	pinctrl-names = "default";
@@ -263,14 +263,14 @@
 		};
 	};*/
 
-	tsc2004@49 {							// Touch controller TI TSC2014 (on Board)
+	tsc2004@49 {							// Touch controller TI TSC2014 (onModule)
 		compatible = "ti,tsc2004";
 		reg = <0x49>;
 		tsc_model =  <2004>;
 		interrupt-parent = <&gpio6>;
 		interrupts = <28 2>;
 		irq-gpios = <&gpio6 28 0>;
-		status = "disabled";
+		status = "disabled";					// It isn't actived by default (if needed it should be actived in dts layers above)
 	};
 
 	/* Will be replaced, because there is a address conflict with the RTC
@@ -304,8 +304,8 @@
 	hog_base {
 		pinctrl_hog_base: hoggrp {
 			fsl,pins = <
-				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x120B0	// Card detection for the SD card
-				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onBoard)
+				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x120B0	// Card detection for the SD card (external via DHCOM)
+				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onModule)
 				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x80000000	// USB Host 1 Power
 				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x80000000	// Touch Interrupt resistive
 				MX6QDL_PAD_RGMII_RD3__GPIO6_IO29  0x120B0	// RTC Interrupt pin (#189)
@@ -355,7 +355,7 @@
 	dr_mode = "otg";						// "host", "peripheral" or "otg" default = "otg"
 };
 
-&usdhc2 {								// SD card
+&usdhc2 {								// SD card (external via DHCOM)
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc2_2>;
 	cd-gpios = <&gpio6 16 0>;
@@ -364,7 +364,7 @@
 	status = "okay";
 };
 
-&usdhc3 {								// Mirco SD card (onBoard)
+&usdhc3 {								// Mirco SD card (onModule)
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc3_2>;
 	cd-gpios = <&gpio7 8 1>;
@@ -373,7 +373,7 @@
 	status = "okay";
 };
 
-&usdhc4 {								// eMMC (onBoard)
+&usdhc4 {								// eMMC (onModule)
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc4_1>;
 	non-removable;

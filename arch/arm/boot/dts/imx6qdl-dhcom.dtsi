@@ -281,13 +281,16 @@
 		pagesize = <8>;
 	};*/
 
-	/* Use internal rtc in default case */
-	/*
-	rtc@56 {							// Micro Crystal RV-3029-C3
-		device_type = "rtc";
+	/* If not available use internal rtc (snvs-rtc-lp) */
+	rtc@56 {							// Micro Crystal RV-3029-C3 (onModule)
+		device_type = "rtc";					// ==> /dev/rtc0
 		compatible = "microc,rtc-rv3029c3", "microc,rtc-rv3029c2";
 		reg = <0x56>;
-	};*/
+		interrupt-parent = <&gpio6>;
+		interrupts = <29 2>;
+		irq-gpios = <&gpio6 29 0>;
+		status = "disabled";					// TODO: If address conflict with eeprom is fixed change status to "okay"
+	};
 };
 
 &weim {									// Memory interface is not active by default
@@ -305,6 +308,7 @@
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onBoard)
 				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x80000000	// USB Host 1 Power
 				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x80000000	// Touch Interrupt resistive
+				MX6QDL_PAD_RGMII_RD3__GPIO6_IO29  0x120B0	// RTC Interrupt pin (#189)
 				MX6QDL_PAD_GPIO_9__WDOG1_B        0x80000000	// Watchdog pin
 			>;
 		};

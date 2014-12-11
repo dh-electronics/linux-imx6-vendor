@@ -302,7 +302,7 @@
 	pinctrl-0 = <&pinctrl_hog_base>;
 
 	hog_base {
-		pinctrl_hog_base: hoggrp {
+		pinctrl_hog_base: hoggrp_base {
 			fsl,pins = <
 				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x120B0	// Card detection for the SD card (external via DHCOM)
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onModule)

@@ -31,7 +31,7 @@
 			regulator-name = "usb_otg_vbus";
 			regulator-min-microvolt = <5000000>;
 			regulator-max-microvolt = <5000000>;
-			gpio = <&gpio3 22 0>;				// OTG ID pin
+			gpio = <&gpio3 22 0>;
 			enable-active-high;
 		};
 
@@ -306,8 +306,9 @@
 			fsl,pins = <
 				MX6QDL_PAD_NANDF_CS3__GPIO6_IO16  0x120B0	// Card detection for the SD card (external via DHCOM)
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onModule)
-				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x80000000	// USB Host 1 Power
-				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x80000000	// Touch Interrupt resistive
+				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x120B0	// USB Host 1 Power
+				MX6QDL_PAD_EIM_D22__GPIO3_IO22    0x120B0	// USB OTG Power
+				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x120B0	// Touch Interrupt resistive
 				MX6QDL_PAD_RGMII_RD3__GPIO6_IO29  0x120B0	// RTC Interrupt pin (#189)
 				MX6QDL_PAD_GPIO_9__WDOG1_B        0x80000000	// Watchdog pin
 			>;
@@ -349,7 +350,7 @@
 &usbotg {								// USB OTG
 	vbus-supply = <&reg_usb_otg_vbus>;
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usbotg_1>;
+	pinctrl-0 = <&pinctrl_usbotg_1>;				// Defined USB OTG ID pin
 	disable-over-current;
 	status = "okay";
 	dr_mode = "otg";						// "host", "peripheral" or "otg" default = "otg"

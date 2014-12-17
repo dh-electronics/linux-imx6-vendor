@@ -177,6 +177,10 @@ static int pwm_backlight_parse_dt(struct device *dev,
 	if (gpio_is_valid(data->enable_gpio) && (flags & OF_GPIO_ACTIVE_LOW))
 		data->enable_gpio_flags |= PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
 
+	if (gpio_is_valid(data->enable_gpio))
+		printk("%s: Using GPIO #%d (active %s) for switching display on/off\n", dev_name(dev),
+		       data->enable_gpio, (flags & OF_GPIO_ACTIVE_LOW) ? "LOW" : "HIGH");
+
 	return 0;
 }
 

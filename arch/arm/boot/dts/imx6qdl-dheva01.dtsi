@@ -11,13 +11,19 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
+/* flags in the third cell of the DT PWM specifier */
+#define PWM_POLARITY_INVERTED			(1 << 0)
+
 / {
 	backlight {
 		compatible = "pwm-backlight";
-		pwms = <&pwm1 0 50000>;
-		brightness-levels = <0 24 28 32 36 40 44 48 52 56 60 64 68 72 76 80 84 88 92 96 100>;
-		default-brightness-level = <10>;
-		enable-gpios = <&gpio2 27 0>;
+		pwms = <&pwm1 0 50000 PWM_POLARITY_INVERTED>;
+		pwm-names = "backlight";
+		// brightness value  0 1  2  3  4  5  6  7   8   9
+		brightness-levels = <0 16 23 32 45 64 91 128 181 256>;
+		default-brightness-level = <7>;
+		enable-gpios = <&gpio3 27 0>;					// GPIO G
+		status = "okay";
 	};
 
 	/*
@@ -187,8 +193,6 @@
 				MX6QDL_PAD_SD1_CLK__GPIO1_IO20     0x400120B0 // GPIO U
 				MX6QDL_PAD_CSI0_PIXCLK__GPIO5_IO18 0x400120B0 // GPIO V
 				MX6QDL_PAD_CSI0_MCLK__GPIO5_IO19   0x400120B0 // GPIO W
-
-				MX6QDL_PAD_SD1_DAT3__PWM1_OUT      0x80000000 // PWM -> Backlight Enable
 			>;
 		};
 	};

@@ -21,7 +21,7 @@
 	};
 
 	/*
-	display@di0 {
+	display@di0 {								// Parallel display interface
 		compatible = "fsl,imx-parallel-display";
 		crtcs = <&ipu1 0>;
 		interface-pix-fmt = "rgb24";
@@ -29,23 +29,8 @@
 		pinctrl-0 = <&pinctrl_ipu1_4>;
 		status = "okay";
 		display-timings {
-			native-mode = <&id_01>;
-			id_01: DataImage_4_3inch_FG040360DSSWBG03_R05 {
-				clock-frequency = <11100000>;
-				hactive = <480>;
-				vactive = <272>;
-				hback-porch = <86>;
-				hfront-porch = <42>;
-				vback-porch = <33>;
-				vfront-porch = <10>;
-				hsync-len = <64>;
-				vsync-len = <2>;
-				hsync-active = <0>;
-				vsync-active = <0>;
-				de-active = <1>;
-				pixelclk-active = <0>;
-			};
-			id_13: DataImage_7inch_FG0700G3DSSW {
+			// DH display ID 13
+			DataImage_7inch_FG0700G3DSSW {
 				clock-frequency = <33260000>;
 				hactive = <800>;
 				vactive = <480>;
@@ -59,21 +44,6 @@
 				vsync-active = <0>;
 				de-active = <1>;
 				pixelclk-active = <1>;
-			};
-			id_10: LG_7inch_LB070WV8 {
-				clock-frequency = <33250000>;
-				hactive = <800>;
-				vactive = <480>;
-				hback-porch = <64>;
-				hfront-porch = <64>;
-				vback-porch = <10>;
-				vfront-porch = <10>;
-				hsync-len = <128>;
-				vsync-len = <25>;
-				hsync-active = <1>;
-				vsync-active = <1>;
-				de-active = <1>;
-				pixelclk-active = <0>;
 			};
 		};
 	};*/
@@ -112,6 +82,43 @@
 		compatible = "fsl,mxc_v4l2_output";
 		status = "okay";
 	};
+};
+
+/*
+&ldb {										// LVDS display interface
+	status = "okay";
+
+	lvds-channel@0 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		status = "okay";
+
+		display-timings {
+			// DH display ID 10
+			LG_7inch_LB070WV8 {
+				clock-frequency = <33250000>;
+				hactive = <800>;
+				vactive = <480>;
+				hback-porch = <64>;
+				hfront-porch = <64>;
+				vback-porch = <10>;
+				vfront-porch = <10>;
+				hsync-len = <128>;
+				vsync-len = <25>;
+				hsync-active = <1>;
+				vsync-active = <1>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};
+	};
+};*/
+
+&pwm1 {										// Backlight PWM
+	#pwm-cells = <3>;							// Needed for inversion
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_pwm1_1>;
+	status = "okay";
 };
 
 &ecspi1 {									// ********** SPI 1 **********
@@ -186,37 +193,3 @@
 		};
 	};
 };
-
-/* LVDS Display */
-/*
-&ldb {
-	status = "okay";
-
-	lvds-channel@1 {
-		fsl,data-mapping = "spwg";
-		fsl,data-width = <18>;
-		status = "okay";
-
-		display-timings {
-			native-mode = <&timing0>;
-			timing0: hsd100pxn1 {
-				clock-frequency = <65000000>;
-				hactive = <1024>;
-				vactive = <768>;
-				hback-porch = <220>;
-				hfront-porch = <40>;
-				vback-porch = <21>;
-				vfront-porch = <7>;
-				hsync-len = <60>;
-				vsync-len = <10>;
-			};
-		};
-	};
-};*/
-
-&pwm1 {										// Used for backlight
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_pwm1_1>;
-	status = "okay";
-};
-

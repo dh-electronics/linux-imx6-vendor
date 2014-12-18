@@ -11,8 +11,7 @@
  * http://www.gnu.org/copyleft/gpl.html
  */
 
-/* flags in the third cell of the DT PWM specifier */
-#define PWM_POLARITY_INVERTED			(1 << 0)
+#include <dt-bindings/pwm/pwm.h>
 
 / {
 	backlight {

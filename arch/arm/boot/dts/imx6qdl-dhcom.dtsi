@@ -360,7 +360,6 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc2_2>;
 	cd-gpios = <&gpio6 16 0>;
-	fsl,wp-controller;
 	keep-power-in-suspend;
 	status = "okay";
 };

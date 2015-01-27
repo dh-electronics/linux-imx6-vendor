@@ -116,6 +116,7 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6dl-cfi2-100.dtb \
 	imx6dl-cfi2-200.dtb \
 	imx6dl-dheva01.dtb \
+	imx6dl-dheva01-ldo.dtb \
 	imx6dl-sabreauto.dtb \
 	imx6dl-sabreauto-ecspi.dtb \
 	imx6dl-sabreauto-flexcan1.dtb \
@@ -129,6 +130,7 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6q-cfi2-100.dtb \
 	imx6q-cfi2-200.dtb \
 	imx6q-dheva01.dtb \
+	imx6q-dheva01-ldo.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
 	imx6q-sabreauto-flexcan1.dtb \

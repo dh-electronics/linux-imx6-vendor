@@ -163,13 +163,8 @@
 	fsl,cpu_pupscr_sw = <0xf>;
 	fsl,cpu_pdnscr_iso2sw = <0x1>;
 	fsl,cpu_pdnscr_iso = <0x1>;
-	fsl,ldo-bypass = <1>; /* use ldo-bypass, u-boot will check it and configure */
+	fsl,ldo-bypass = <0>; /* use ldo-bypass, u-boot will check it and configure */
 	fsl,wdog-reset = <1>; /* watchdog select of reset source */
-	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
-};
-
-&gpu {
-	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
 };
 
 &i2c1 {									// ********** I2C 1 **********
@@ -381,8 +376,4 @@
 	no-1-8-v;
 	keep-power-in-suspend;
 	status = "okay";
-};
-
-&vpu {
-	pu-supply = <&pu_dummy>;					// ldo-bypass:use pu_dummy if VDDSOC share with VDDPU
 };

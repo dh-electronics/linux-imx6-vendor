@@ -152,7 +152,7 @@
 		reg = <0x20>;
 		interrupt-parent = <&gpio4>;
 		interrupts = <7 2>;
-		status = "disabled";
+		status = "okay";
 	};
 };
 

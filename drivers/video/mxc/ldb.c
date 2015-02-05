@@ -159,6 +159,14 @@ static struct fb_videomode ldb_modedb[] = {
 	 0,
 	 FB_VMODE_NONINTERLACED,
 	 FB_MODE_IS_DETAILED,},
+	{
+	 "LDB-LB070WV8", 60, 800, 480, 30066,
+	 86, 42,
+	 33, 10,
+	 128, 2,
+	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT | FB_SYNC_CLK_LAT_FALL ,
+	 FB_VMODE_NONINTERLACED,
+	 FB_MODE_IS_DETAILED,},
 };
 static int ldb_modedb_sz = ARRAY_SIZE(ldb_modedb);
 

@@ -648,7 +648,8 @@ static void __init imx6q_clocks_init(struct device_node *ccm_node)
 	}
 
 	/* ipu clock initialization */
-	init_ldb_clks(pll2_pfd0_352m);
+	//init_ldb_clks(pll2_pfd0_352m);
+	init_ldb_clks(pll5_video_div);
 	clk_set_parent(clk[ipu1_di0_pre_sel], clk[pll5_video_div]);
 	clk_set_parent(clk[ipu1_di1_pre_sel], clk[pll5_video_div]);
 	clk_set_parent(clk[ipu2_di0_pre_sel], clk[pll5_video_div]);

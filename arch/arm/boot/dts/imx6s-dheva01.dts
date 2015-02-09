@@ -17,3 +17,11 @@
 	model = "Freescale i.MX6 Solo DHCOM Premium Developer Kit";
 	compatible = "fsl,imx6s-dheva01", "fsl,imx6dl";
 };
+
+&mxcfb1 {
+	status = "okay";
+};
+
+&mxcfb2 {
+	status = "okay";
+};

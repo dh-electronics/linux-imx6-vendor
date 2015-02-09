@@ -311,6 +311,17 @@
 	};
 };
 
+&ldb {
+        ipu_id = <0>;
+        disp_id = <0>;
+        ext_ref = <0>;
+        mode = "sep0";
+        sec_ipu_id = <1>;
+        sec_disp_id = <1>;
+        status = "okay";
+};
+
+
 &ssi1 {									// Used for sound
 	fsl,mode = "i2s-slave";
 	status = "okay";

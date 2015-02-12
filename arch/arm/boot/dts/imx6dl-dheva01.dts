@@ -11,6 +11,7 @@
 
 #include "imx6dl.dtsi"
 #include "imx6qdl-dhcom.dtsi"
+// #include "imx6qdl-dhcom-nand.dtsi" // disables eMMC, enables NAND
 #include "imx6qdl-dheva01.dtsi"
 
 / {

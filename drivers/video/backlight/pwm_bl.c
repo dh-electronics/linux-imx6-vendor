@@ -13,6 +13,7 @@
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 #include <linux/module.h>
+#include <linux/moduleparam.h>
 #include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/platform_device.h>
@@ -22,6 +23,13 @@
 #include <linux/pwm.h>
 #include <linux/pwm_backlight.h>
 #include <linux/slab.h>
+#include <drm/drmP.h>
+
+#define SET_MAX_SIZE 7
+static char *set[SET_MAX_SIZE] = { [0 ... (SET_MAX_SIZE-1)] = NULL };
+static int size_bootarg_set = 0;
+module_param_array(set, charp, &size_bootarg_set, S_IRUGO);
+
 
 struct pwm_bl_data {
 	struct pwm_device	*pwm;
@@ -166,6 +174,21 @@ static int pwm_backlight_parse_dt(struct device *dev,
 			return ret;
 
 		data->dft_brightness = value;
+		/* Set default brightness to 0 if bootarg BLON = 0 
+		   If you want to set the default brightness: BLON = 1000 + brightness */
+		if( size_bootarg_set != 0 ) {
+			int property_value = (int)bootargs_get_property_value( set, size_bootarg_set, "BLON", (-1) );
+			if( property_value == 0 )
+				data->dft_brightness = 0;
+			if( property_value >= 1000 ) {
+				property_value -= 1000;
+				if( property_value < data->max_brightness )
+					data->dft_brightness = property_value;
+				else
+					data->dft_brightness = data->max_brightness - 1;
+			}
+		}
+
 		data->max_brightness--;
 	}
 
@@ -174,8 +197,24 @@ static int pwm_backlight_parse_dt(struct device *dev,
 	if (data->enable_gpio == -EPROBE_DEFER)
 		return -EPROBE_DEFER;
 
+	/* Overwrite device tree value only if bootarg BLGPIO available */
+	if( size_bootarg_set != 0 ) {
+		int property_value = (int)bootargs_get_property_value( set, size_bootarg_set, "BLGPIO", (-1) );
+		if( property_value >= 0 )
+			data->enable_gpio = property_value;
+	}
+
 	if (gpio_is_valid(data->enable_gpio) && (flags & OF_GPIO_ACTIVE_LOW))
 		data->enable_gpio_flags |= PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
+
+	/* Overwrite device tree value only if bootarg BLINV available */
+	if( size_bootarg_set != 0 ) {
+		int property_value = (int)bootargs_get_property_value( set, size_bootarg_set, "BLINV", (-1) );
+		if( property_value == 0 )
+			data->enable_gpio_flags &= ~PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
+		if( property_value == 1 )
+			data->enable_gpio_flags |= PWM_BACKLIGHT_GPIO_ACTIVE_LOW;
+	}
 
 	if (gpio_is_valid(data->enable_gpio))
 		printk("%s: Using GPIO #%d (active %s) for switching display on/off\n", dev_name(dev),
@@ -282,6 +321,15 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 	 */
 	if (data->pwm_period_ns > 0)
 		pwm_set_period(pb->pwm, data->pwm_period_ns);
+
+	/* Overwrite device tree value only if bootarg PWMINV available */
+	if( size_bootarg_set != 0 ) {
+		int property_value = (int)bootargs_get_property_value( set, size_bootarg_set, "PWMINV", (-1) );
+		if( property_value == 0 )
+			pwm_set_polarity(pb->pwm, PWM_POLARITY_NORMAL);
+		if( property_value == 1 )
+			pwm_set_polarity(pb->pwm, PWM_POLARITY_INVERSED);
+	}
 
 	pb->period = pwm_get_period(pb->pwm);
 	pb->lth_brightness = data->lth_brightness * (pb->period / max);

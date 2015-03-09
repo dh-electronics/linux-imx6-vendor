@@ -188,6 +188,9 @@ static int pwm_backlight_parse_dt(struct device *dev,
 					data->dft_brightness = data->max_brightness - 1;
 			}
 		}
+		printk("%s Set default brightness to %d/%d\n", dev_name(dev),
+							       data->dft_brightness,
+							       data->max_brightness - 1);
 
 		data->max_brightness--;
 	}
@@ -217,8 +220,8 @@ static int pwm_backlight_parse_dt(struct device *dev,
 	}
 
 	if (gpio_is_valid(data->enable_gpio))
-		printk("%s: Using GPIO #%d (active %s) for switching display on/off\n", dev_name(dev),
-		       data->enable_gpio, (flags & OF_GPIO_ACTIVE_LOW) ? "LOW" : "HIGH");
+		printk("%s Using GPIO #%d (active %s) for switching display on/off\n", dev_name(dev),
+		       data->enable_gpio, (data->enable_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW) ? "LOW" : "HIGH");
 
 	return 0;
 }

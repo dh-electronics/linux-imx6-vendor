@@ -1483,6 +1483,13 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
 
 extern int drm_display_mode_from_videomode(const struct videomode *vm,
 					   struct drm_display_mode *dmode);
+extern signed long bootargs_get_property_value( char **timings,
+						int size,
+						const char *property_name,
+						signed long default_value );
+extern int bootargs_get_drm_display_mode(char **timings,
+					 int size,
+					 struct drm_display_mode *dmode);
 extern int of_get_drm_display_mode(struct device_node *np,
 				   struct drm_display_mode *dmode,
 				   int index);

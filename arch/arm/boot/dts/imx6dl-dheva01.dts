@@ -12,6 +12,7 @@
 #include "imx6dl.dtsi"
 #include "imx6qdl-dhcom.dtsi"
 // #include "imx6qdl-dhcom-nand.dtsi" // disables eMMC, enables NAND
+// #include "imx6qdl-dhpico1-rs485.dtsi" // enable rs485 for UART2 (ttymxc4) on dhpico1
 #include "imx6qdl-dheva01.dtsi"
 
 / {

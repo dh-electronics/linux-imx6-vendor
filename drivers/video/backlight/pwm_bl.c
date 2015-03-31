@@ -30,6 +30,8 @@ static char *set[SET_MAX_SIZE] = { [0 ... (SET_MAX_SIZE-1)] = NULL };
 static int size_bootarg_set = 0;
 module_param_array(set, charp, &size_bootarg_set, S_IRUGO);
 
+static bool disable = 0;
+module_param(disable, bool, S_IRUGO);
 
 struct pwm_bl_data {
 	struct pwm_device	*pwm;
@@ -249,6 +251,10 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 	struct pwm_bl_data *pb;
 	unsigned int max;
 	int ret;
+
+	/* The "disable" variable come from bootargs */
+	if( disable )
+		return 0;
 
 	if (!data) {
 		ret = pwm_backlight_parse_dt(&pdev->dev, &defdata);

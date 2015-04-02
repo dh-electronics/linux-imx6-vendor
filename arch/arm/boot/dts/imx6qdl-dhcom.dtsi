@@ -117,6 +117,12 @@
 	status = "okay";
 };
 
+&cpu0 {
+	arm-supply = <&sw3_reg>;
+	soc-supply = <&sw1_reg>;
+	pu-supply = <&pu_dummy>; /* ldo-bypass */
+};
+
 &flexcan1 {								// CAN
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1_3>;
@@ -163,8 +169,13 @@
 	fsl,cpu_pupscr_sw = <0xf>;
 	fsl,cpu_pdnscr_iso2sw = <0x1>;
 	fsl,cpu_pdnscr_iso = <0x1>;
-	fsl,ldo-bypass = <0>; /* use ldo-bypass, u-boot will check it and configure */
+	fsl,ldo-bypass = <1>; /* use ldo-bypass, u-boot will check it and configure */
 	fsl,wdog-reset = <1>; /* watchdog select of reset source */
+	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
+};
+
+&gpu {
+	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
 };
 
 &i2c1 {									// ********** I2C 1 **********
@@ -209,54 +220,69 @@
 		>;
 	};*/
 
-	/* TODO PMIC */
-	/*
 	pmic: ltc3676@3c {						// Power Management LTC3676EUJ#PBF
-		compatible = "ltc,ltc3676";
+		compatible = "lltc,ltc3676";
 		reg = <0x3c>;
+		interrupt-parent = <&gpio6>;
+		interrupts = <27 2>;
 
 		regulators {
-			sw1_reg: ltc3676__sw1 {
-				regulator-min-microvolt = <1175000>;
-				regulator-max-microvolt = <1175000>;
+			/* VCC_SOC */
+			sw1_reg: sw1 {
+				regulator-min-microvolt = <787500>;
+				regulator-max-microvolt = <1527272>;
+				lltc,fb-voltage-divider = <100000 110000>;
+				regulator-suspend-mem-microvolt = <1040000>;
+				regulator-ramp-delay = <7000>;
 				regulator-boot-on;
 				regulator-always-on;
 			};
-
-			sw2_reg: ltc3676__sw2 {
-				regulator-min-microvolt = <1800000>;
-				regulator-max-microvolt = <1800000>;
+			/* VCC_3V3 */
+			sw2_reg: sw2 {
+				regulator-min-microvolt = <1885714>;
+				regulator-max-microvolt = <3657142>;
+				lltc,fb-voltage-divider = <100000 28000>;
+				regulator-ramp-delay = <7000>;
 				regulator-boot-on;
 				regulator-always-on;
 			};
-
-			sw3_reg: ltc3676__sw3 {
-				regulator-min-microvolt = <1175000>;
-				regulator-max-microvolt = <1175000>;
+			/* VCC_ARM */
+			sw3_reg: sw3 {
+				regulator-min-microvolt = <787500>;
+				regulator-max-microvolt = <1527272>;
+				lltc,fb-voltage-divider = <100000 110000>;
+				regulator-suspend-mem-microvolt = <980000>;
+				regulator-ramp-delay = <7000>;
 				regulator-boot-on;
 				regulator-always-on;
 			};
-
-			sw4_reg: ltc3676__sw4 {
-				regulator-min-microvolt = <1500000>;
-				regulator-max-microvolt = <1500000>;
+			/* VCC_DDR3 */	
+			sw4_reg: sw4 {
+				regulator-min-microvolt = <855571>;
+				regulator-max-microvolt = <1659291>;
+				lltc,fb-voltage-divider = <100000 93100>;
+				regulator-ramp-delay = <7000>;
 				regulator-boot-on;
 				regulator-always-on;
 			};
-
-			ldo2_reg: ltc3676__ldo2 {
-				regulator-min-microvolt = <2500000>;
-				regulator-max-microvolt = <2500000>;
+			/* VCC_SNVS */
+			ldo1_reg: ldo1 {
+				regulator-min-microvolt = <3240306>;
+				regulator-max-microvolt = <3240306>;
+				lltc,fb-voltage-divider = <102000 29400>;
 				regulator-boot-on;
 				regulator-always-on;
 			};
-
-			ldo4_reg: ltc3676__ldo4 {
-				regulator-min-microvolt = <3000000>;
-				regulator-max-microvolt = <3000000>;
+			/* VCC_2V5_LDO2 */
+			ldo2_reg: ldo2 {
+				regulator-min-microvolt = <2484708>;
+				regulator-max-microvolt = <2484708>;
+				lltc,fb-voltage-divider = <100000 41200>;
+				regulator-boot-on;
+				regulator-always-on;
 			};
 		};
-	};*/
+	};
 
 	tsc2004@49 {							// Touch controller TI TSC2014 (onModule)
 		compatible = "ti,tsc2004";
@@ -303,6 +329,7 @@
 				MX6QDL_PAD_SD3_RST__GPIO7_IO08    0x120B0	// Card detection for the Mirco SD card (onModule)
 				MX6QDL_PAD_EIM_D31__GPIO3_IO31    0x120B0	// USB Host 1 Power
 				MX6QDL_PAD_EIM_D22__GPIO3_IO22    0x120B0	// USB OTG Power
+				MX6QDL_PAD_RGMII_RD1__GPIO6_IO27  0x1B0B0 	// PMIC_IRQ#
 				MX6QDL_PAD_RGMII_RD2__GPIO6_IO28  0x120B0	// Touch Interrupt resistive
 				MX6QDL_PAD_RGMII_RD3__GPIO6_IO29  0x120B0	// RTC Interrupt pin (#189)
 				MX6QDL_PAD_GPIO_9__WDOG1_B        0x80000000	// Watchdog pin
@@ -387,4 +414,8 @@
 	no-1-8-v;
 	keep-power-in-suspend;
 	status = "okay";
+};
+
+&vpu {
+	pu-supply = <&pu_dummy>; /* ldo-bypass:use pu_dummy if VDDSOC share with VDDPU */
 };

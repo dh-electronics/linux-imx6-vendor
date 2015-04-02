@@ -18,6 +18,7 @@
 #include <linux/of_irq.h>
 #include <linux/suspend.h>
 #include <linux/genalloc.h>
+#include <linux/regulator/machine.h>
 #include <linux/regmap.h>
 #include <linux/mfd/syscon.h>
 #include <linux/mfd/syscon/imx6q-iomuxc-gpr.h>
@@ -419,9 +420,29 @@ static int imx6_pm_valid(suspend_state_t state)
 	return (state == PM_SUSPEND_STANDBY || state == PM_SUSPEND_MEM);
 }
 
+static suspend_state_t prepare_state = PM_SUSPEND_MAX;
+static int imx6_pm_begin(suspend_state_t state)
+{
+	prepare_state = state;
+	return 0;
+}
+
+static int imx6_pm_prepare(void)
+{
+	return regulator_suspend_prepare(prepare_state);
+}
+
+static void imx6_pm_finish(void)
+{
+ 	regulator_suspend_finish();
+}
+
 static const struct platform_suspend_ops imx6_pm_ops = {
+	.begin = imx6_pm_begin,
+	.prepare = imx6_pm_prepare,
 	.enter = imx6_pm_enter,
 	.valid = imx6_pm_valid,
+	.finish = imx6_pm_finish,
 };
 
 void imx6_pm_set_ccm_base(void __iomem *base)

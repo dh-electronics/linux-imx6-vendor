@@ -60,6 +60,7 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 	unsigned long freq_hz, volt, volt_old;
 	unsigned int index, soc_opp_index = 0;
 	int ret;
+	int tol = 25000; /* 25mv tolerance */
 
 	mutex_lock(&set_cpufreq_lock);
 
@@ -109,9 +110,10 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 			return -EINVAL;
 	}
 
-	dev_dbg(cpu_dev, "%u MHz, %ld mV --> %u MHz, %ld mV\n",
+	dev_dbg(cpu_dev, "%u MHz, %ld mV --> %u MHz, %ld/%ld mV\n",
 		freqs.old / 1000, volt_old / 1000,
-		freqs.new / 1000, volt / 1000);
+		freqs.new / 1000, volt / 1000,
+		imx6_soc_opp[soc_opp_index].soc_volt / 1000);
 
 	/*
 	  * CPU freq is increasing, so need to ensure
@@ -125,7 +127,7 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 		if (regulator_is_enabled(pu_reg)) {
 			ret = regulator_set_voltage_tol(pu_reg,
 					imx6_soc_opp[soc_opp_index].soc_volt,
-					0);
+					tol);
 			if (ret) {
 				dev_err(cpu_dev,
 					"failed to scale vddpu up: %d\n", ret);
@@ -133,13 +135,13 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 			}
 		}
 		ret = regulator_set_voltage_tol(soc_reg,
-				imx6_soc_opp[soc_opp_index].soc_volt, 0);
+				imx6_soc_opp[soc_opp_index].soc_volt, tol);
 		if (ret) {
 			dev_err(cpu_dev,
 				"failed to scale vddsoc up: %d\n", ret);
 			goto err1;
 		}
-		ret = regulator_set_voltage_tol(arm_reg, volt, 0);
+		ret = regulator_set_voltage_tol(arm_reg, volt, tol);
 		if (ret) {
 			dev_err(cpu_dev,
 				"failed to scale vddarm up: %d\n", ret);
@@ -172,7 +174,7 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 
 	/* scaling down?  scale voltage after frequency */
 	if (freqs.new < freqs.old) {
-		ret = regulator_set_voltage_tol(arm_reg, volt, 0);
+		ret = regulator_set_voltage_tol(arm_reg, volt, tol);
 		if (ret) {
 			dev_warn(cpu_dev,
 				 "failed to scale vddarm down: %d\n", ret);
@@ -180,7 +182,7 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 		}
 
 		ret = regulator_set_voltage_tol(soc_reg,
-				imx6_soc_opp[soc_opp_index].soc_volt, 0);
+				imx6_soc_opp[soc_opp_index].soc_volt, tol);
 		if (ret) {
 			dev_err(cpu_dev,
 				"failed to scale vddsoc down: %d\n", ret);
@@ -190,7 +192,7 @@ static int imx6_set_target(struct cpufreq_policy *policy,
 		if (regulator_is_enabled(pu_reg)) {
 			ret = regulator_set_voltage_tol(pu_reg,
 					imx6_soc_opp[soc_opp_index].soc_volt,
-					0);
+					tol);
 			if (ret) {
 				dev_err(cpu_dev,
 				"failed to scale vddpu down: %d\n", ret);
@@ -260,7 +262,8 @@ static int imx6_cpufreq_pm_notify(struct notifier_block *nb,
 	unsigned long event, void *dummy)
 {
 	struct cpufreq_policy *data = cpufreq_cpu_get(0);
-	static u32 cpufreq_policy_min_pre_suspend;
+	//static u32 cpufreq_policy_min_pre_suspend;
+	static u32 cpufreq_policy_max_pre_suspend;
 
 	/*
 	 * During suspend/resume, When cpufreq driver try to increase
@@ -271,11 +274,14 @@ static int imx6_cpufreq_pm_notify(struct notifier_block *nb,
 	 */
 	switch (event) {
 	case PM_SUSPEND_PREPARE:
-		cpufreq_policy_min_pre_suspend = data->user_policy.min;
-		data->user_policy.min = data->user_policy.max;
+		//cpufreq_policy_min_pre_suspend = data->user_policy.min;
+		//data->user_policy.min = data->user_policy.max;
+		cpufreq_policy_max_pre_suspend = data->user_policy.max;
+		data->user_policy.max = data->user_policy.min;
 		break;
 	case PM_POST_SUSPEND:
-		data->user_policy.min = cpufreq_policy_min_pre_suspend;
+		//data->user_policy.min = cpufreq_policy_min_pre_suspend;
+		data->user_policy.max = cpufreq_policy_max_pre_suspend;
 		break;
 	default:
 		break;
@@ -328,6 +334,12 @@ static int imx6_cpufreq_probe(struct platform_device *pdev)
 	if (IS_ERR(arm_reg) || IS_ERR(pu_reg) || IS_ERR(soc_reg)) {
 		dev_err(cpu_dev, "failed to get regulators\n");
 		ret = -ENOENT;
+		goto put_node;
+	}
+
+	ret = of_init_opp_table(cpu_dev);
+	if (ret) {
+		dev_err(cpu_dev, "failed to init OPP table: %d\n", ret);
 		goto put_node;
 	}
 
@@ -436,6 +448,8 @@ static int imx6_cpufreq_probe(struct platform_device *pdev)
 	opp = opp_find_freq_exact(cpu_dev,
 				  freq_table[num - 1].frequency * 1000, true);
 	max_volt = opp_get_voltage(opp);
+	dev_warn(cpu_dev, "ARM_FREQs: maxv: %ld, minv: %ld, freq0: %d, freqNum: %d, NumFreqs: %d, NR: %d\n", max_volt, min_volt, freq_table[0].frequency, freq_table[num - 1].frequency, num, nr);
+
 	rcu_read_unlock();
 	ret = regulator_set_voltage_time(arm_reg, min_volt, max_volt);
 	if (ret > 0)

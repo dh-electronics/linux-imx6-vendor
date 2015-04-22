@@ -264,7 +264,8 @@ static const struct dev_pm_ops uio_pdrv_genirq_dev_pm_ops = {
 
 #ifdef CONFIG_OF
 static const struct of_device_id uio_of_genirq_match[] = {
-	{ /* empty for now */ },
+        { .compatible = "generic-uio", },
+	{ },
 };
 MODULE_DEVICE_TABLE(of, uio_of_genirq_match);
 #else

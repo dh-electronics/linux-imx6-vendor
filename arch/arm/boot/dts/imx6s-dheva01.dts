@@ -11,6 +11,7 @@
 
 #include "imx6s.dtsi"
 #include "imx6qdl-dhcom.dtsi"
+// #include "imx6qdl-dhcom-weim.dtsi" // enables WEIM example config with UIO-Driver
 #include "imx6qdl-dheva01.dtsi"
 
 / {

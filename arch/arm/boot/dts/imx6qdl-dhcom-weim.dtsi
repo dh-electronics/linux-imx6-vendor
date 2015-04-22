@@ -1,0 +1,53 @@
+/*
+ * Copyright 2014 DH electronics GmbH
+ * Copyright 2012 Freescale Semiconductor, Inc.
+ * Copyright 2011 Linaro Ltd.
+ *
+ * The code contained herein is licensed under the GNU General Public
+ * License. You may obtain a copy of the GNU General Public License
+ * Version 2 or later at the following locations:
+ *
+ * http://www.opensource.org/licenses/gpl-license.html
+ * http://www.gnu.org/copyleft/gpl.html
+ */
+
+/ {
+};
+
+&weim {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_weim_dhcom_1 &pinctrl_weim_cs0_1 &pinctrl_weim_cs1_1>;
+	#address-cells = <2>;
+	#size-cells = <1>;
+	/* it is necessary to setup 2x 64MB otherwise setting gpr fails */
+	ranges = <0 0  0x08000000  0x04000000>, // chip select 0 == DHCOM CS A 
+		 <1 0  0x0c000000  0x04000000>; // chip select 1 == DHCOM CS B 
+	fsl,weim-cs-gpr = <&gpr>;
+	status = "okay";
+
+	uiomap_cs0@0,0 {
+		compatible = "generic-uio";
+		reg = <0 0x00000000 0x04000000>;
+		reg-names = "uio_cs0";
+		interrupt-parent = <&gpio1>;
+		interrupts = <2 2>; // add gpio B == interrupt
+		#address-cells = <1>;
+		#size-cells = <1>;
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x0F015061
+				      0x00000000 0x0F068A31 0x00000000>;
+	        status = "okay";
+	};
+
+	uiomap_cs1@0,1 {
+		compatible = "generic-uio";
+		reg = <1 0x00000000 0x04000000>;
+		reg-names = "uio_cs1";
+		interrupt-parent = <&gpio1>;
+		interrupts = <4 2>; // add gpio B == interrupt
+		#address-cells = <1>;
+		#size-cells = <1>;
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x0F015061
+				      0x00000000 0x0F068A31 0x00000000>;
+	        status = "disabled";
+	};
+};

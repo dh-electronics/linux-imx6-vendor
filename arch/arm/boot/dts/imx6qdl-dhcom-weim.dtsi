@@ -33,7 +33,7 @@
 		interrupts = <2 2>; // add gpio B == interrupt
 		#address-cells = <1>;
 		#size-cells = <1>;
-		fsl,weim-cs-timing = <0x00610089 0x00001002 0x0F015061
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x0F011061
 				      0x00000000 0x0F068A31 0x00000000>;
 	        status = "okay";
 	};
@@ -46,7 +46,7 @@
 		interrupts = <4 2>; // add gpio B == interrupt
 		#address-cells = <1>;
 		#size-cells = <1>;
-		fsl,weim-cs-timing = <0x00610089 0x00001002 0x0F015061
+		fsl,weim-cs-timing = <0x00610089 0x00001002 0x0F011061
 				      0x00000000 0x0F068A31 0x00000000>;
 	        status = "disabled";
 	};

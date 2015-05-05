@@ -160,8 +160,9 @@
 	phy-mode = "rmii";
 	phy-reset-gpios = <&gpio5 0 1>;
 	//phy-reset-duration = 1;					// 1ms is the default value
-	status = "okay";
 	//local-mac-address = [00 11 22 33 44 55];			// Is set by the bootloader
+	power-gpios = <&gpio1 7 1>;					// Power for LAN-Transformer 7499111614A (Isn't yet supported by driver)
+	status = "okay";
 };
 
 &gpc {

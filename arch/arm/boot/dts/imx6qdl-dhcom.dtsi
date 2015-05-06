@@ -394,6 +394,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc2_2>;
 	cd-gpios = <&gpio6 16 0>;
+	cd-inverted;							// Card detect is inverted (active HIGH)
 	keep-power-in-suspend;
 	status = "okay";
 };
@@ -401,7 +402,7 @@
 &usdhc3 {								// Mirco SD card (onModule)
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc3_2>;
-	cd-gpios = <&gpio7 8 1>;
+	cd-gpios = <&gpio7 8 0>;
 	fsl,wp-controller;
 	keep-power-in-suspend;
 	status = "okay";

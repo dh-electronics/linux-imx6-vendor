@@ -1014,7 +1014,7 @@ static int sdhci_esdhc_imx_probe(struct platform_device *pdev)
 	int err;
 	struct pltfm_imx_data *imx_data;
 	enum of_gpio_flags flags;
-	bool explicit_inv_cd, gpio_inv_cd = false;
+	bool explicit_inv_cd = false;
 
 	host = sdhci_pltfm_init(pdev, &sdhci_esdhc_imx_pdata);
 	if (IS_ERR(host))
@@ -1140,11 +1140,8 @@ static int sdhci_esdhc_imx_probe(struct platform_device *pdev)
 	switch (boarddata->cd_type) {
 	case ESDHC_CD_GPIO:
 		explicit_inv_cd = of_property_read_bool(pdev->dev.of_node, "cd-inverted");
-		of_get_named_gpio_flags(pdev->dev.of_node, "cd-gpios", 0, &flags);
-		if (!(flags & OF_GPIO_ACTIVE_LOW))
-			gpio_inv_cd = true;
-		pr_info("%s: Card detection GPIO is active %s", mmc_hostname(host->mmc), gpio_inv_cd ? "HIGH" : "LOW" );
-		if (explicit_inv_cd ^ gpio_inv_cd)
+		pr_info("%s: Card detection GPIO is active %s", mmc_hostname(host->mmc), explicit_inv_cd ? "HIGH" : "LOW" );
+		if (explicit_inv_cd)
 			host->mmc->caps2 |= MMC_CAP2_CD_ACTIVE_HIGH;
 		err = mmc_gpio_request_cd(host->mmc, boarddata->cd_gpio);
 		if (err) {

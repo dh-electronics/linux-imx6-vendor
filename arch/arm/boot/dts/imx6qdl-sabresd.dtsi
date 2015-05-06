@@ -568,7 +568,7 @@
 &usdhc2 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc2_1>;
-	cd-gpios = <&gpio2 2 1>;
+	cd-gpios = <&gpio2 2 0>;
 	wp-gpios = <&gpio2 3 0>;
 	no-1-8-v;
 	keep-power-in-suspend;
@@ -579,7 +579,7 @@
 &usdhc3 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_usdhc3_1>;
-	cd-gpios = <&gpio2 0 1>;
+	cd-gpios = <&gpio2 0 0>;
 	wp-gpios = <&gpio2 1 0>;
 	no-1-8-v;
 	keep-power-in-suspend;

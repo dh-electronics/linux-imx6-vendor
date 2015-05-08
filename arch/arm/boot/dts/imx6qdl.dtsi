@@ -1077,6 +1077,16 @@
 				MX6QDL_PAD_DISP0_DAT19__AUD5_RXD  0x130b0
 			>;
 		};
+
+		pinctrl_audmux_4: audmux-4 { /* DHCOM configuration */
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DAT7__AUD3_RXD  0x130b0
+				MX6QDL_PAD_CSI0_DAT4__AUD3_TXC  0x130b0
+				MX6QDL_PAD_CSI0_DAT5__AUD3_TXD  0x110b0
+				MX6QDL_PAD_CSI0_DAT6__AUD3_TXFS 0x130b0
+				MX6QDL_PAD_GPIO_0__CCM_CLKO1    0x030b0     /* SGTL5000 sys_mclk */
+			>;
+		};
 	};
 
 	ecspi1 {

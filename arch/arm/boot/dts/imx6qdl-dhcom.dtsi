@@ -119,11 +119,6 @@
 	status = "okay";
 };
 
-&cpu0 {
-	arm-supply = <&sw3_reg>;
-	soc-supply = <&sw1_reg>;
-};
-
 &flexcan1 {								// CAN
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_flexcan1_3>;

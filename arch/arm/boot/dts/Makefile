@@ -113,9 +113,13 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx53-mba53.dtb \
 	imx53-qsb.dtb \
 	imx53-smd.dtb \
-	imx6dl-cfi2-100.dtb \
-	imx6dl-cfi2-200.dtb \
-	imx6dl-dheva01.dtb \
+	imx6d-dhcom2B-pdk1.dtb \
+	imx6d-dhcom3B-pdk2.dtb \
+	imx6dl-dhcom2B-cfi2-100.dtb \
+	imx6dl-dhcom2B-cfi2-200.dtb \
+	imx6dl-dhcom2B-pdk1.dtb \
+	imx6dl-dhcom3B-pdk2.dtb \
+	imx6dl-dhcom3B-cfi2-200.dtb \
 	imx6dl-sabreauto.dtb \
 	imx6dl-sabreauto-ecspi.dtb \
 	imx6dl-sabreauto-flexcan1.dtb \
@@ -125,10 +129,12 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6dl-sabresd-ldo.dtb \
 	imx6dl-sabresd-pf200.dtb \
 	imx6dl-wandboard.dtb \
+	imx6q-dhcom2B-cfi2-100.dtb \
+	imx6q-dhcom2B-cfi2-200.dtb \
+	imx6q-dhcom2B-pdk1.dtb \
+	imx6q-dhcom3B-pdk2.dtb \
+	imx6q-dhcom3B-cfi2-200.dtb \
 	imx6q-arm2.dtb \
-	imx6q-cfi2-100.dtb \
-	imx6q-cfi2-200.dtb \
-	imx6q-dheva01.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
 	imx6q-sabreauto-flexcan1.dtb \
@@ -138,7 +144,8 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6q-sabresd-hdcp.dtb \
 	imx6q-sabresd-ldo.dtb \
 	imx6q-sbc6x.dtb \
-	imx6s-dheva01.dtb \
+	imx6s-dhcom2B-pdk1.dtb \
+	imx6s-dhcom3B-pdk2.dtb \
 	imx6sl-evk.dtb \
 	imx6sl-evk-csi.dtb \
 	imx6sl-evk-ldo.dtb \

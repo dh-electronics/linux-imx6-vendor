@@ -35,8 +35,8 @@
 
 // Basic configuration
 //**********************************************************
-// HW200 base
-#include "imx6qdl-dhcom2B.dtsi"
+// HW300 base
+#include "imx6qdl-dhcom3B.dtsi"
 
 // Memory 1GB DDR3 RAM
 / {
@@ -54,10 +54,10 @@
 //******************************************************************************
 // B O A R D - C O N F I G U R A T I O N
 //******************************************************************************
-#include "imx6qdl-dh_cfi2-100.dtsi"
+#include "imx6qdl-dh_cfi2-200.dtsi"
 
 
 / {
-	model = "Freescale i.MX6 DualLite DHCOM CFI2-100";
-	compatible = "fsl,imx6dl-dhcom2B-cfi2-100", "fsl,imx6dl";
+	model = "Freescale i.MX6 DualLite DHCOM CFI2-200";
+	compatible = "fsl,imx6dl-dhcom3B-cfi2-200", "fsl,imx6dl";
 };

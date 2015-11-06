@@ -11,7 +11,7 @@
 //******************************************************************************
 // C P U - T Y P E
 //******************************************************************************
-#include "imx6dl.dtsi"
+#include "imx6s.dtsi"
 #define IMX6_CPU_SOLO_DUALLITE // Used to distinguish the CPU types
 &cpu0 {
 	operating-points = <
@@ -35,13 +35,13 @@
 
 // Basic configuration
 //**********************************************************
-// HW200 base
-#include "imx6qdl-dhcom2B.dtsi"
+// HW300 base
+#include "imx6qdl-dhcom3B.dtsi"
 
-// Memory 1GB DDR3 RAM
+// Memory 512MB DDR3 RAM
 / {
 	memory {
-		reg = <0x10000000 0x40000000>;
+		reg = <0x10000000 0x20000000>;
 	};
 };
 
@@ -50,14 +50,20 @@
 // Enables NAND, disables eMMC
 //#include "imx6qdl-dhcom_cfg-nand.dtsi"
 
+// Enable RS485 for UART2 (ttymxc4)
+//#include "imx6qdl-dhcom_cfg-rs485.dtsi"
+
+// Eenables WEIM example config with UIO-Driver
+//#include "imx6qdl-dhcom_cfg-weim.dtsi"
+
 
 //******************************************************************************
 // B O A R D - C O N F I G U R A T I O N
 //******************************************************************************
-#include "imx6qdl-dh_cfi2-100.dtsi"
+#include "imx6qdl-dh_pdk2.dtsi"
 
 
 / {
-	model = "Freescale i.MX6 DualLite DHCOM CFI2-100";
-	compatible = "fsl,imx6dl-dhcom2B-cfi2-100", "fsl,imx6dl";
+	model = "Freescale i.MX6 Solo DHCOM Premium Developer Kit (2)";
+	compatible = "fsl,imx6s-dhcom3B-pdk2", "fsl,imx6dl"; // It is a DualLite with only 1 CPU
 };

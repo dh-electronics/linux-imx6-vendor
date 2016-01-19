@@ -150,6 +150,7 @@ static struct clk_div_table video_div_table[] = {
 static void init_ldb_clks(enum mx6q_clks new_parent)
 {
 	u32 reg;
+	int ret = 0;
 
 	/*
 	 * Need to follow a strict procedure when changing the LDB
@@ -204,6 +205,14 @@ static void init_ldb_clks(enum mx6q_clks new_parent)
 	writel_relaxed(reg, ccm_base + 0xc);
 
 	/*
+	 * Set the ldb_di0_clk and ldb_di1_clk to 011b.
+	 */
+	reg = readl_relaxed(ccm_base + 0x2c);
+	reg &= ~((7 << 9) | (7 << 12));
+	reg |= ((3 << 9) | (3 << 12));
+	writel_relaxed(reg, ccm_base + 0x2c);
+
+	/*
 	 * Set the ldb_di0_clk and ldb_di1_clk to 111b.
 	 */
 	reg = readl_relaxed(ccm_base + 0x2c);
@@ -221,8 +230,10 @@ static void init_ldb_clks(enum mx6q_clks new_parent)
 	/*
 	 * Perform the LDB parent clock switch.
 	 */
-	clk_set_parent(clk[ldb_di0_sel], clk[new_parent]);
-	clk_set_parent(clk[ldb_di1_sel], clk[new_parent]);
+	ret = clk_set_parent(clk[ldb_di0_sel], clk[pll2_pfd0_352m]); 
+	ret = clk_set_parent(clk[ldb_di0_sel], clk[new_parent]);
+	ret = clk_set_parent(clk[ldb_di1_sel], clk[pll2_pfd0_352m]);	
+	ret = clk_set_parent(clk[ldb_di1_sel], clk[new_parent]);
 
 	/*
 	 * Unbypass pll3_sw_clk.

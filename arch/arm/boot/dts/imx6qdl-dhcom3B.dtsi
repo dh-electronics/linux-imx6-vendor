@@ -200,7 +200,7 @@
 		interrupt-parent = <&gpio7>;
 		interrupts = <12 2>;
 		irq-gpios = <&gpio7 12 0>;
-		status = "OK";
+		status = "okay";
 	};
 };
 

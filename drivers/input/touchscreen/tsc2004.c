@@ -31,9 +31,12 @@
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 
-
-#define TS_POLL_DELAY			1 /* ms delay between samples */
-#define TS_POLL_PERIOD			1 /* ms delay between samples */
+/* We're running with HZ=100 that does mean to
+ * get at least one complete jiffy delay we have to
+ * specify 20 ms here
+ */
+#define TS_POLL_DELAY			20 /* ms delay between samples */
+#define TS_POLL_PERIOD			20 /* ms delay between samples */
 
 /* Control byte 0 */
 #define TSC2004_CMD0(addr, pnd, rw) ((addr<<3)|(pnd<<1)|rw)

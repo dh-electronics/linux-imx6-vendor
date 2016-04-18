@@ -167,6 +167,17 @@ static struct fb_videomode ldb_modedb[] = {
 	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT | FB_SYNC_CLK_LAT_FALL ,
 	 FB_VMODE_NONINTERLACED,
 	 FB_MODE_IS_DETAILED,},
+	{
+	 "LDB-LD101WX1", 60, 1280, 800, 14705,
+	 /* left_margin=hback_porch, right_margin=hfront_porch, */
+	 80, 48,
+	 /* upper_margin=vback_borch, lower_margin=vfront_porch, */
+	 14, 2,
+	 /* hsync, vsync, */
+	 32, 6,
+	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	 FB_VMODE_NONINTERLACED,
+	 FB_MODE_IS_DETAILED,},
 };
 static int ldb_modedb_sz = ARRAY_SIZE(ldb_modedb);
 

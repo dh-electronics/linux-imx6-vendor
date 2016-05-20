@@ -24,15 +24,13 @@
 #include <linux/uaccess.h>
 #include <linux/usb/serial.h>
 
-#define DRIVER_DESC "Silicon Labs CP210x RS232 serial adaptor driver (with GPIO support)"
+#define DRIVER_DESC "Silicon Labs CP210x RS232 serial adaptor driver"
 
 /*
  * Function Prototypes
  */
 static int cp210x_open(struct tty_struct *tty, struct usb_serial_port *);
 static void cp210x_close(struct usb_serial_port *);
-static int cp210x_ioctl(struct tty_struct *tty,
-	unsigned int cmd, unsigned long arg);
 static void cp210x_get_termios(struct tty_struct *, struct usb_serial_port *);
 static void cp210x_get_termios_port(struct usb_serial_port *port,
 	unsigned int *cflagp, unsigned int *baudp);
@@ -187,7 +185,6 @@ MODULE_DEVICE_TABLE(usb, id_table);
 
 struct cp210x_serial_private {
 	__u8			bInterfaceNumber;
-	__u8			bPartNumber;
 };
 
 static struct usb_serial_driver cp210x_device = {
@@ -201,7 +198,6 @@ static struct usb_serial_driver cp210x_device = {
 	.bulk_out_size		= 256,
 	.open			= cp210x_open,
 	.close			= cp210x_close,
-	.ioctl			= cp210x_ioctl,
 	.break_ctl		= cp210x_break_ctl,
 	.set_termios		= cp210x_set_termios,
 	.tiocmget		= cp210x_tiocmget,
@@ -214,17 +210,6 @@ static struct usb_serial_driver cp210x_device = {
 static struct usb_serial_driver * const serial_drivers[] = {
 	&cp210x_device, NULL
 };
-
-/* Part number definitions */
-#define CP2101_PARTNUM		0x01
-#define CP2102_PARTNUM		0x02
-#define CP2103_PARTNUM		0x03
-#define CP2104_PARTNUM		0x04
-#define CP2105_PARTNUM		0x05
-
-/* IOCTLs */
-#define IOCTL_GPIOGET		0x8000
-#define IOCTL_GPIOSET		0x8001
 
 /* Config request types */
 #define REQTYPE_HOST_TO_INTERFACE	0x41
@@ -259,16 +244,10 @@ static struct usb_serial_driver * const serial_drivers[] = {
 #define CP210X_SET_CHARS	0x19
 #define CP210X_GET_BAUDRATE	0x1D
 #define CP210X_SET_BAUDRATE	0x1E
-#define CP210X_VENDOR_SPECIFIC	0xFF
 
 /* CP210X_IFC_ENABLE */
 #define UART_ENABLE		0x0001
 #define UART_DISABLE		0x0000
-
-/* CP210X_VENDOR_SPECIFIC */
-#define CP210X_WRITE_LATCH	0x37E1
-#define CP210X_READ_LATCH	0x00C2
-#define CP210X_GET_PARTNUM	0x370B
 
 /* CP210X_(SET|GET)_BAUDDIV */
 #define BAUD_RATE_GEN_FREQ	0x384000
@@ -488,96 +467,6 @@ static void cp210x_close(struct usb_serial_port *port)
 {
 	usb_serial_generic_close(port);
 	cp210x_set_config_single(port, CP210X_IFC_ENABLE, UART_DISABLE);
-}
-
-static int cp210x_ioctl(struct tty_struct *tty,
-	unsigned int cmd, unsigned long arg)
-{
-	struct usb_serial_port *port = tty->driver_data;
-	struct usb_serial *serial = port->serial;
-	struct cp210x_serial_private *port_priv = usb_get_serial_data(serial);
-	int result = 0;
-	unsigned int latch_setting = 0;
-
-	switch (cmd) {
-
-	case IOCTL_GPIOGET:
-		if ((port_priv->bPartNumber == CP2103_PARTNUM) ||
-			(port_priv->bPartNumber == CP2104_PARTNUM)) {
-			result = usb_control_msg(port->serial->dev,
-					usb_rcvctrlpipe(port->serial->dev, 0),
-					CP210X_VENDOR_SPECIFIC,
-					REQTYPE_DEVICE_TO_HOST,
-					CP210X_READ_LATCH,
-					port_priv->bInterfaceNumber,
-					&latch_setting, 1,
-					USB_CTRL_GET_TIMEOUT);
-			if (result != 1)
-				return -EPROTO;
-			*(unsigned long *)arg = (unsigned long)latch_setting;
-			return 0;
-		} else if (port_priv->bPartNumber == CP2105_PARTNUM) {
-			result = usb_control_msg(port->serial->dev,
-					usb_rcvctrlpipe(port->serial->dev, 0),
-					CP210X_VENDOR_SPECIFIC,
-					REQTYPE_INTERFACE_TO_HOST,
-					CP210X_READ_LATCH,
-					port_priv->bInterfaceNumber,
-					&latch_setting, 1,
-					USB_CTRL_GET_TIMEOUT);
-			if (result != 1)
-				return -EPROTO;
-			*(unsigned long *)arg = (unsigned long)latch_setting;
-			return 0;
-		} else {
-			return -ENOTSUPP;
-		}
-		break;
-
-	case IOCTL_GPIOSET:
-		if ((port_priv->bPartNumber == CP2103_PARTNUM) ||
-			(port_priv->bPartNumber == CP2104_PARTNUM)) {
-			latch_setting =
-				*(unsigned int *)arg & 0x000000FF;
-			latch_setting |=
-				(*(unsigned int *)arg & 0x00FF0000) >> 8;
-			result = usb_control_msg(port->serial->dev,
-					usb_sndctrlpipe(port->serial->dev, 0),
-					CP210X_VENDOR_SPECIFIC,
-					REQTYPE_HOST_TO_DEVICE,
-					CP210X_WRITE_LATCH,
-					latch_setting,
-					NULL, 0,
-					USB_CTRL_SET_TIMEOUT);
-			if (result != 0)
-				return -EPROTO;
-			return 0;
-		} else if (port_priv->bPartNumber == CP2105_PARTNUM) {
-			latch_setting =
-				*(unsigned int *)arg & 0x000000FF;
-			latch_setting |=
-				(*(unsigned int *)arg & 0x00FF0000) >> 8;
-			result = usb_control_msg(port->serial->dev,
-					usb_sndctrlpipe(port->serial->dev, 0),
-					CP210X_VENDOR_SPECIFIC,
-					REQTYPE_HOST_TO_INTERFACE,
-					CP210X_WRITE_LATCH,
-					port_priv->bInterfaceNumber,
-					&latch_setting, 2,
-					USB_CTRL_SET_TIMEOUT);
-			if (result != 2)
-				return -EPROTO;
-			return 0;
-		} else {
-			return -ENOTSUPP;
-		}
-		break;
-
-	default:
-		break;
-	}
-
-	return -ENOIOCTLCMD;
 }
 
 /*
@@ -973,7 +862,6 @@ static int cp210x_startup(struct usb_serial *serial)
 {
 	struct usb_host_interface *cur_altsetting;
 	struct cp210x_serial_private *spriv;
-	unsigned int partNum;
 
 	/* cp210x buffers behave strangely unless device is reset */
 	usb_reset_device(serial->dev);
@@ -986,17 +874,6 @@ static int cp210x_startup(struct usb_serial *serial)
 	spriv->bInterfaceNumber = cur_altsetting->desc.bInterfaceNumber;
 
 	usb_set_serial_data(serial, spriv);
-
-	/* Get the 1-byte part number of the cp210x device */
-	usb_control_msg(serial->dev,
-		usb_rcvctrlpipe(serial->dev, 0),
-		CP210X_VENDOR_SPECIFIC,
-		REQTYPE_DEVICE_TO_HOST,
-		CP210X_GET_PARTNUM,
-		spriv->bInterfaceNumber,
-		&partNum, 1,
-		USB_CTRL_GET_TIMEOUT);
-	spriv->bPartNumber = partNum & 0xFF;
 
 	return 0;
 }

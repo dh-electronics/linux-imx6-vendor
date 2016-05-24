@@ -10,6 +10,7 @@
 #define PWM_BACKLIGHT_GPIO_ACTIVE_LOW	(1 << 0)
 
 struct platform_pwm_backlight_data {
+	const char *sysfs_name;
 	int pwm_id;
 	unsigned int max_brightness;
 	unsigned int dft_brightness;

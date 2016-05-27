@@ -195,9 +195,9 @@ static int pwm_backlight_parse_dt(struct device *dev,
 					data->dft_brightness = data->max_brightness - 1;
 			}
 		}
-		printk("%s Set default brightness to %d/%d\n", dev_name(dev),
-							       data->dft_brightness,
-							       data->max_brightness - 1);
+		dev_info(dev, "Set default brightness to %d/%d\n",
+		         data->dft_brightness,
+		         data->max_brightness - 1);
 
 		data->max_brightness--;
 	}
@@ -227,8 +227,11 @@ static int pwm_backlight_parse_dt(struct device *dev,
 	}
 
 	if (gpio_is_valid(data->enable_gpio))
-		printk("%s Using GPIO #%d (active %s) for switching display on/off\n", dev_name(dev),
-		       data->enable_gpio, (data->enable_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW) ? "LOW" : "HIGH");
+		dev_info(dev, "Using GPIO #%d (%d.%d) active %s for switching display on/off\n",
+		         data->enable_gpio,
+		        (data->enable_gpio / 32) + 1,
+		         data->enable_gpio % 32,
+		        (data->enable_gpio_flags & PWM_BACKLIGHT_GPIO_ACTIVE_LOW) ? "LOW" : "HIGH");
 
 	return 0;
 }
@@ -258,8 +261,20 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 	int ret;
 
 	/* The "disable" variable come from bootargs */
-	if( disable )
-		return 0;
+	if( disable ) {
+		dev_info(&pdev->dev, "Disabled by bootarg\n");
+		return -ENODEV;;
+	}
+
+	/* Output given bootargs */
+	if( size_bootarg_set != 0 ) {
+		int blgpio = (int)bootargs_get_property_value( set, size_bootarg_set, "BLGPIO", (-1) );
+		int blinv = (int)bootargs_get_property_value( set, size_bootarg_set, "BLINV", (-1) );
+		int blon = (int)bootargs_get_property_value( set, size_bootarg_set, "BLON", (-1) );
+		int pwminv = (int)bootargs_get_property_value( set, size_bootarg_set, "PWMINV", (-1) );
+		dev_info(&pdev->dev, "Bootargs: BLGPIO=%d BLINV=%d BLON=%d PWMINV=%d\n",
+		         blgpio, blinv, blon, pwminv );
+	}
 
 	if (!data) {
 		ret = pwm_backlight_parse_dt(&pdev->dev, &defdata);
@@ -344,6 +359,9 @@ static int pwm_backlight_probe(struct platform_device *pdev)
 		if( property_value == 1 )
 			pwm_set_polarity(pb->pwm, PWM_POLARITY_INVERSED);
 	}
+
+	dev_info(&pdev->dev, "Operation mode: %s\n",
+	         (pwm_get_polarity( pb->pwm ) == PWM_POLARITY_NORMAL) ? "NORMAL" : "INVERSED" );
 
 	pb->period = pwm_get_period(pb->pwm);
 	pb->lth_brightness = data->lth_brightness * (pb->period / max);

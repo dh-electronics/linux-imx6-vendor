@@ -178,6 +178,14 @@ static struct fb_videomode ldb_modedb[] = {
 	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
 	 FB_VMODE_NONINTERLACED,
 	 FB_MODE_IS_DETAILED,},
+        {
+         "LDB-ETML101001DKA", 60, 1280, 800, 14065,
+         80, 48,
+         14, 2,
+         32, 7,
+         0,
+         FB_VMODE_NONINTERLACED,
+         FB_MODE_IS_DETAILED,},
 };
 static int ldb_modedb_sz = ARRAY_SIZE(ldb_modedb);
 

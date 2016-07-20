@@ -164,7 +164,7 @@ static struct fb_videomode ldb_modedb[] = {
 	 86, 42,
 	 33, 10,
 	 128, 2,
-	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT | FB_SYNC_CLK_LAT_FALL ,
+	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT | FB_SYNC_CLK_LAT_FALL,
 	 FB_VMODE_NONINTERLACED,
 	 FB_MODE_IS_DETAILED,},
 	{
@@ -175,7 +175,7 @@ static struct fb_videomode ldb_modedb[] = {
 	 14, 2,
 	 /* hsync, vsync, */
 	 32, 6,
-	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+	 FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT | FB_SYNC_CLK_LAT_FALL,
 	 FB_VMODE_NONINTERLACED,
 	 FB_MODE_IS_DETAILED,},
         {

@@ -78,6 +78,17 @@ static struct fb_videomode lcdif_modedb[] = {
 	0,
 	FB_VMODE_NONINTERLACED,
 	0,},
+	{
+	"DH_LCD_ID_20", 60, 800, 600, 20202, /* LZ: Needs review by HW!! */
+	/* left_margin=hback_porch, right_margin=hfront_porch, */
+	26, 210,
+	/* upper_margin=vback_borch, lower_margin=vfront_porch, */
+	13, 12,
+	/* hsync, vsync, */
+	20, 10,
+	FB_SYNC_CLK_LAT_FALL,
+	FB_VMODE_NONINTERLACED,
+	0,},
 };
 static int lcdif_modedb_sz = ARRAY_SIZE(lcdif_modedb);
 

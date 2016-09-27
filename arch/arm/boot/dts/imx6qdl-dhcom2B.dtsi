@@ -18,10 +18,10 @@
 		spi1 = &ecspi2;
 		spi2 = &ecspi3;
 		spi3 = &ecspi4;
-		mmcblk0 = &usdhc2;
-		mmcblk1 = &usdhc3;
-		mmcblk2 = &usdhc4;
-		mmcblk3 = &usdhc1; 						// Unused at dhcom, put at the end to be compatible with uboot
+		mmc0 = &usdhc2;
+		mmc1 = &usdhc3;
+		mmc2 = &usdhc4;
+		mmc3 = &usdhc1;							// Unused at dhcom, put at the end to be compatible with uboot
 	};
 
 	regulators {

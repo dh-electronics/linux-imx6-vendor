@@ -44,7 +44,7 @@
 	};
 };
 
-&flexcan1 {									// CAN
+&can1 {										// CAN
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_dhcom_flexcan1>;
 	status = "okay";

@@ -254,6 +254,13 @@ dtb-$(CONFIG_SOC_IMX53) += \
 	imx53-tx53-x13x.dtb \
 	imx53-voipac-bsb.dtb
 dtb-$(CONFIG_SOC_IMX6Q) += \
+	imx6d-dhcom2B-pdk1.dtb \
+	imx6d-dhcom3B-pdk2.dtb \
+	imx6dl-dhcom2B-cfi2-100.dtb \
+	imx6dl-dhcom2B-cfi2-200.dtb \
+	imx6dl-dhcom2B-pdk1.dtb \
+	imx6dl-dhcom3B-pdk2.dtb \
+	imx6dl-dhcom3B-cfi2-200.dtb \
 	imx6dl-aristainetos_4.dtb \
 	imx6dl-aristainetos_7.dtb \
 	imx6dl-cubox-i.dtb \
@@ -285,6 +292,11 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6dl-sabresd-enetirq.dtb \
 	imx6dl-wandboard.dtb \
 	imx6dl-wandboard-revb1.dtb \
+	imx6q-dhcom2B-cfi2-100.dtb \
+	imx6q-dhcom2B-cfi2-200.dtb \
+	imx6q-dhcom2B-pdk1.dtb \
+	imx6q-dhcom3B-pdk2.dtb \
+	imx6q-dhcom3B-cfi2-200.dtb \
 	imx6q-arm2.dtb \
 	imx6q-arm2-hsic.dtb \
 	imx6q-pop-arm2.dtb \
@@ -332,7 +344,9 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-tx6q-1110.dtb \
 	imx6q-udoo.dtb \
 	imx6q-wandboard.dtb \
-	imx6q-wandboard-revb1.dtb
+	imx6q-wandboard-revb1.dtb \
+	imx6s-dhcom2B-pdk1.dtb \
+	imx6s-dhcom3B-pdk2.dtb
 dtb-$(CONFIG_SOC_IMX6SL) += \
 	imx6sl-evk.dtb \
 	imx6sl-evk-btwifi.dtb \

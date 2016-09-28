@@ -13,10 +13,6 @@
 
 / {
 	aliases {
-		spi0 = &ecspi1;							// Fixed /dev/spidevXX.YY name (XX was a large number)
-		spi1 = &ecspi2;
-		spi2 = &ecspi3;
-		spi3 = &ecspi4;
 		mmc0 = &usdhc2;
 		mmc1 = &usdhc3;
 		mmc2 = &usdhc4;

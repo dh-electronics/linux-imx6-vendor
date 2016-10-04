@@ -161,6 +161,8 @@
 		VDDIO-supply = <&reg_3p3v>;
 	};
 
+	/* TODO PMIC */
+	/*
 	pmic: ltc3676@3c {							// Power Management LTC3676EUJ#PBF
 		compatible = "lltc,ltc3676";
 		pinctrl-names = "default";
@@ -219,7 +221,7 @@
 				regulator-always-on;
 			};
 		};
-	};
+	};*/
 
 	tsc2004@49 {								// Touch controller TI TSC2014 (onModule)
 		compatible = "ti,tsc2004";
@@ -327,20 +329,9 @@
 	keep-power-in-suspend;
 	status = "okay";
 };
-/* TODO: Avoid crashing through this settings
-&cpu0 {
-	arm-supply = <&sw3_reg>;
-	soc-supply = <&sw1_reg>;
-	pu-supply = <&pu_dummy>;						// LDO-bypass
-};
-*/
+
 &gpc {
-	fsl,cpu_pupscr_sw2iso = <0xf>;
-	fsl,cpu_pupscr_sw = <0xf>;
-	fsl,cpu_pdnscr_iso2sw = <0x1>;
-	fsl,cpu_pdnscr_iso = <0x1>;
 	fsl,ldo-bypass = <0>; 							// 0=LDO / 1=LDO-bypass, u-boot will check it and configure
-	fsl,wdog-reset = <1>; 							// watchdog select of reset source
 };
 
 &iomuxc {

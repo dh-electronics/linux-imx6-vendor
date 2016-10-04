@@ -13,19 +13,19 @@
 //******************************************************************************
 #include "imx6dl.dtsi"
 #define IMX6_CPU_SOLO_DUALLITE // Used to distinguish the CPU types
-&cpu0 {
-	operating-points = <
+&cpu0 { // Use voltage settings after activating the PMIC
+/*	operating-points = <
 		// kHz      uV
-	//	996000      1275000  // Only for consumer type of product
-		792000      1175000
-		396000      1075000
+		996000      1260000  // Only for consumer type of product
+		792000      1160000
+		396000      1130000
 	>;
 	fsl,soc-operating-points = <
 		// ARM kHz  SOC-PU uV
-	//	996000      1175000  // Only for consumer type of product
-		792000      1175000
-		396000      1175000
-	>;
+		996000      1200000  // Only for consumer type of product
+		792000      1160000
+		396000      1160000
+	>;*/
 };
 
 

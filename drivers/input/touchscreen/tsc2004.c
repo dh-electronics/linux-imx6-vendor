@@ -30,18 +30,20 @@
 #include <linux/i2c/tsc2004.h>
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
+#include <linux/delay.h>
 
 /* We're running with HZ=100 that does mean to
  * get at least one complete jiffy delay we have to
  * specify 20 ms here
  */
-#define TS_POLL_DELAY			20 /* ms delay between samples */
-#define TS_POLL_PERIOD			20 /* ms delay between samples */
+#define TS_POLL_PERIOD			20   /* ms delay between samples */
+#define DEF_AUX_REF_VALUE		3270 /* Default reference voltage value in mV */
+#define AUX_VALUE_INVALID		(-1) /* Return this value if measurement failed */
 
 /* Control byte 0 */
 #define TSC2004_CMD0(addr, pnd, rw) ((addr<<3)|(pnd<<1)|rw)
 /* Control byte 1 */
-#define TSC2004_CMD1(cmd, mode, rst) ((1<<7)|(cmd<<4)|(mode<<2)|(rst<<1))
+#define TSC2004_CMD1(cmd, mode, rst, sts) ((1<<7)|(cmd<<3)|(mode<<2)|(rst<<1)|(sts))
 
 /* Command Bits */
 #define READ_REG	1
@@ -50,6 +52,8 @@
 #define SWRST_FALSE	0
 #define PND0_TRUE	1
 #define PND0_FALSE	0
+#define STS_STOP	1
+#define STS_RUN		0
 
 /* Converter function mapping */
 enum convertor_function {
@@ -94,17 +98,18 @@ enum register_address {
 /* Supported Resolution modes */
 enum resolution_mode {
 	MODE_10BIT,	/* 10 bit resolution */
-	MODE_12BIT		/* 12 bit resolution */
+	MODE_12BIT	/* 12 bit resolution */
 };
 
 /* Configuraton register bit fields */
 /* CFR0 */
 #define PEN_STS_CTRL_MODE	(1<<15)
 #define ADC_STS			(1<<14)
-#define RES_CTRL		(1<<13)
+#define RM_CTRL			(1<<13)
 #define ADC_CLK_4MHZ		(0<<11)
 #define ADC_CLK_2MHZ		(1<<11)
 #define ADC_CLK_1MHZ		(2<<11)
+#define PRECHARGE_276US		(2<<5)
 #define PANEL_VLTG_STB_TIME_0US		(0<<8)
 #define PANEL_VLTG_STB_TIME_100US	(1<<8)
 #define PANEL_VLTG_STB_TIME_500US	(2<<8)
@@ -113,6 +118,9 @@ enum resolution_mode {
 #define PANEL_VLTG_STB_TIME_10MS	(5<<8)
 #define PANEL_VLTG_STB_TIME_50MS	(6<<8)
 #define PANEL_VLTG_STB_TIME_100MS	(7<<8)
+
+/* CFR1 */
+#define BATCHDELAY_4MS		(3<<0)
 
 /* CFR2 */
 #define PINTS1			(1<<15)
@@ -128,9 +136,11 @@ enum resolution_mode {
 #define MAV_FLTR_EN_X		(1<<4)
 #define MAV_FLTR_EN_Y		(1<<3)
 #define MAV_FLTR_EN_Z		(1<<2)
+#define MAV_FLTR_EN_AUX		(1<<1)
 
 #define	MAX_12BIT		((1 << 12) - 1)
 #define MEAS_MASK		0xFFF
+#define SHIFT_FILTER		4
 
 struct ts_event {
 	u16	x;
@@ -149,9 +159,14 @@ struct tsc2004 {
 	u16			x_plate_ohms;
 
 	bool			pendown;
-	int				irq;
+	int			irq;
 	int			(*get_pendown_state)(void);
-	void		(*clear_penirq)(void);
+	void			(*clear_penirq)(void);
+
+	unsigned int		ref_voltage_mV;
+	int			aux_value;
+
+	atomic_t		aux_lock;
 };
 
 static unsigned int tsc2004gpio=0;
@@ -202,7 +217,6 @@ static int tsc2004_get_devtree_pdata(struct device *dev,
 
 	//gpio_to_irq(unsigned gpio);
 
-
 	return 0;
 }
 
@@ -218,32 +232,20 @@ static int tsc2004_get_devtree_pdata(struct device *dev, struct tsc2004 *ts,
 
 static inline int tsc2004_read_word_data(struct tsc2004 *tsc, u8 cmd)
 {
-	s32 data;
-	u16 val;
+	s32 val;
 
-	data = i2c_smbus_read_word_data(tsc->client, cmd);
-	if (data < 0) {
-		dev_err(&tsc->client->dev, "i2c io (read) error: %d\n", data);
-		return data;
-	}
+	val = i2c_smbus_read_word_swapped(tsc->client, cmd);
+	if (val < 0)
+		dev_err(&tsc->client->dev, "i2c io (read) error: %d\n", val);
 
-	/* The protocol and raw data format from i2c interface:
-	 * S Addr Wr [A] Comm [A] S Addr Rd [A] [DataLow] A [DataHigh] NA P
-	 * Where DataLow has [D11-D4], DataHigh has [D3-D0 << 4 | Dummy 4bit].
-	 */
-	val = swab16(data) >> 4;
-
-	dev_dbg(&tsc->client->dev, "data: 0x%x, val: 0x%x\n", data, val);
+	dev_dbg(&tsc->client->dev, "val: 0x%04X\n", val);
 
 	return val;
 }
 
-static inline int tsc2004_write_word_data(struct tsc2004 *tsc, u8 cmd, u16 data)
+static inline int tsc2004_write_word_data(struct tsc2004 *tsc, u8 cmd, u16 val)
 {
-	u16 val;
-
-	val = swab16(data);
-	return i2c_smbus_write_word_data(tsc->client, cmd, val);
+	return i2c_smbus_write_word_swapped(tsc->client, cmd, val);
 }
 
 static inline int tsc2004_write_cmd(struct tsc2004 *tsc, u8 value)
@@ -251,20 +253,20 @@ static inline int tsc2004_write_cmd(struct tsc2004 *tsc, u8 value)
 	return i2c_smbus_write_byte(tsc->client, value);
 }
 
-static int tsc2004_prepare_for_reading(struct tsc2004 *ts)
+static int tsc2004_prepare_for_reading_touch(struct tsc2004 *ts)
 {
 	int err;
 	int cmd, data;
 
 	/* Reset the TSC, configure for 12 bit */
-	cmd = TSC2004_CMD1(MEAS_X_Y_Z1_Z2, MODE_12BIT, SWRST_TRUE);
+	cmd = TSC2004_CMD1(MEAS_X_Y_Z1_Z2, MODE_12BIT, SWRST_TRUE, STS_RUN);
 	err = tsc2004_write_cmd(ts, cmd);
 	if (err < 0)
 		return err;
 
-	/* Enable interrupt for PENIRQ and DAV */
+	/* Enable interrupt for DAV */
 	cmd = TSC2004_CMD0(CFR2_REG, PND0_FALSE, WRITE_REG);
-	data = PINTS1 | PINTS0 | MEDIAN_VAL_FLTR_SIZE_15 |
+	data = PINTS0 | MEDIAN_VAL_FLTR_SIZE_15 |
 		AVRG_VAL_FLTR_SIZE_7_8 | MAV_FLTR_EN_X | MAV_FLTR_EN_Y |
 		MAV_FLTR_EN_Z;
 	err = tsc2004_write_word_data(ts, cmd, data);
@@ -279,7 +281,7 @@ static int tsc2004_prepare_for_reading(struct tsc2004 *ts)
 		return err;
 
 	/* Enable x, y, z1 and z2 conversion functions */
-	cmd = TSC2004_CMD1(MEAS_X_Y_Z1_Z2, MODE_12BIT, SWRST_FALSE);
+	cmd = TSC2004_CMD1(MEAS_X_Y_Z1_Z2, MODE_12BIT, SWRST_FALSE, STS_RUN);
 	err = tsc2004_write_cmd(ts, cmd);
 	if (err < 0)
 		return err;
@@ -287,7 +289,63 @@ static int tsc2004_prepare_for_reading(struct tsc2004 *ts)
 	return 0;
 }
 
-static void tsc2004_read_values(struct tsc2004 *tsc, struct ts_event *tc)
+static int tsc2004_prepare_for_reading_aux(struct tsc2004 *ts)
+{
+	int err;
+	int cmd, data;
+
+	/* Reset the TSC, configure for 12 bit */
+	cmd = TSC2004_CMD1(MEAS_AUX, MODE_12BIT, SWRST_TRUE, STS_RUN);
+	err = tsc2004_write_cmd(ts, cmd);
+	if (err < 0)
+		return err;
+
+	/* Setup CFR0 for aux input */
+	cmd = TSC2004_CMD0(CFR0_REG, PND0_FALSE, WRITE_REG);
+	data = PANEL_VLTG_STB_TIME_1MS | ADC_CLK_1MHZ | RM_CTRL |
+	       PRECHARGE_276US | PEN_STS_CTRL_MODE;
+	err = tsc2004_write_word_data(ts, cmd, data);
+	if (err < 0)
+		return err;
+
+	/* Setup CFR1 for aux input */
+	cmd = TSC2004_CMD0(CFR1_REG, PND0_FALSE, WRITE_REG);
+	data = BATCHDELAY_4MS;
+	err = tsc2004_write_word_data(ts, cmd, data);
+	if (err < 0)
+		return err;
+
+	/* Setup CFR2 for aux input */
+	cmd = TSC2004_CMD0(CFR2_REG, PND0_FALSE, WRITE_REG);
+	data = PINTS0 | MAV_FLTR_EN_AUX | MEDIAN_VAL_FLTR_SIZE_15 |
+	       AVRG_VAL_FLTR_SIZE_7_8;
+	err = tsc2004_write_word_data(ts, cmd, data);
+	if (err < 0)
+		return err;
+
+	/* Start sampling aux input */
+	cmd = TSC2004_CMD1(MEAS_AUX, MODE_12BIT, SWRST_FALSE, STS_RUN);
+	err = tsc2004_write_cmd(ts, cmd);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+
+static int tsc2004_stop_scan(struct tsc2004 *ts)
+{
+	int err;
+	int cmd;
+
+	cmd = TSC2004_CMD1(MEAS_AUX, MODE_12BIT, SWRST_FALSE, STS_STOP);
+	err = tsc2004_write_cmd(ts, cmd);
+	if (err < 0)
+		return err;
+
+	return 0;
+}
+
+static void tsc2004_read_values_touch(struct tsc2004 *tsc, struct ts_event *tc)
 {
 	int cmd;
 
@@ -307,16 +365,26 @@ static void tsc2004_read_values(struct tsc2004 *tsc, struct ts_event *tc)
 	cmd = TSC2004_CMD0(Z2_REG, PND0_FALSE, READ_REG);
 	tc->z2 = tsc2004_read_word_data(tsc, cmd);
 
+	tc->x =  (tc->x  >> SHIFT_FILTER) & MEAS_MASK;
+	tc->y =  (tc->y  >> SHIFT_FILTER) & MEAS_MASK;
+	tc->z1 = (tc->z1 >> SHIFT_FILTER) & MEAS_MASK;
+	tc->z2 = (tc->z2 >> SHIFT_FILTER) & MEAS_MASK;
 
-	tc->x &= MEAS_MASK;
-	tc->y &= MEAS_MASK;
-	tc->z1 &= MEAS_MASK;
-	tc->z2 &= MEAS_MASK;
+	/* Prepare for TOUCH readings */
+	if (tsc2004_prepare_for_reading_touch(tsc) < 0)
+		dev_dbg(&tsc->client->dev, "Failed to prepare TSC "
+					   "for next TOUCH reading\n");
+}
 
-	/* Prepare for touch readings */
-	if (tsc2004_prepare_for_reading(tsc) < 0)
-		dev_dbg(&tsc->client->dev, "Failed to prepare TSC for next"
-				"reading\n");
+static void tsc2004_read_values_aux(struct tsc2004 *tsc, int *val)
+{
+	int cmd;
+
+	/* Read AUX Measurement */
+	cmd = TSC2004_CMD0(AUX_REG, PND0_FALSE, READ_REG);
+	*val = tsc2004_read_word_data(tsc, cmd);
+
+	*val &= MEAS_MASK;
 }
 
 static u32 tsc2004_calculate_pressure(struct tsc2004 *tsc, struct ts_event *tc)
@@ -379,7 +447,7 @@ static void tsc2004_work(struct work_struct *work)
 		dev_dbg(&ts->client->dev, "pen is still down\n");
 	}
 
-	tsc2004_read_values(ts, &tc);
+	tsc2004_read_values_touch(ts, &tc);
 
 	rt = tsc2004_calculate_pressure(ts, &tc);
 	if (rt > MAX_12BIT) {
@@ -390,7 +458,6 @@ static void tsc2004_work(struct work_struct *work)
 		 */
 		dev_dbg(&ts->client->dev, "ignored pressure %d\n", rt);
 		goto out;
-
 	}
 
 	if (rt) {
@@ -434,10 +501,11 @@ static irqreturn_t tsc2004_irq(int irq, void *handle)
 {
 	struct tsc2004 *ts = handle;
 
-	if (!ts->get_pendown_state() || likely(ts->get_pendown_state())) {
-		disable_irq_nosync(ts->irq);
-		schedule_delayed_work(&ts->work,
-				      msecs_to_jiffies(TS_POLL_DELAY));
+	if (atomic_read(&ts->aux_lock) == false ) {
+		if (!ts->get_pendown_state || likely(ts->get_pendown_state())) {
+			disable_irq_nosync(ts->irq);
+			schedule_delayed_work(&ts->work, 0);
+		}
 	}
 
 	if (ts->clear_penirq)
@@ -459,6 +527,106 @@ static void tsc2004_free_irq(struct tsc2004 *ts)
 	}
 }
 
+static ssize_t tsc2004_aux_value_mV_show(struct device *dev,
+					 struct device_attribute *attr,
+					 char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct tsc2004 *ts = i2c_get_clientdata(client);
+	bool valid_value_available;
+	int aux_value_mV;
+
+	atomic_set(&ts->aux_lock, true);
+
+	/* Wait for a dwork to finish executing the last queueing */
+	flush_delayed_work(&ts->work);
+
+	/* Touch measurement inactive */
+	if (!delayed_work_pending(&ts->work)) {
+		if (tsc2004_prepare_for_reading_aux(ts) < 0)
+			dev_dbg(&ts->client->dev, "Failed to prepare TSC"
+						  " for AUX reading\n");
+
+		usleep_range(300, 500);
+
+		/* Value is valid if pendown is true
+		   (pendown = inverse PINTDAV) */
+		valid_value_available = true;
+		if (ts->get_pendown_state) /* Get pendown state before stopping TSC */
+			valid_value_available = ts->get_pendown_state();
+
+		tsc2004_stop_scan(ts); /* Stop TSC before reading value */
+
+		if (valid_value_available)
+			tsc2004_read_values_aux(ts, &ts->aux_value);
+		else
+			ts->aux_value = AUX_VALUE_INVALID;
+
+		if (tsc2004_prepare_for_reading_touch(ts) < 0)
+			dev_dbg(&ts->client->dev, "Failed to prepare TSC "
+						  "for next TOUCH reading\n");
+	}
+	/* Touch measurement is running
+	   We cannot measure an aux value */
+	else {
+		ts->aux_value = AUX_VALUE_INVALID;
+	}
+
+	atomic_set(&ts->aux_lock, false);
+
+	if (ts->aux_value != AUX_VALUE_INVALID)
+		aux_value_mV = (ts->ref_voltage_mV * ts->aux_value)/4095;
+	else
+		aux_value_mV = AUX_VALUE_INVALID;
+
+	return sprintf(buf, "%d\n", aux_value_mV);
+}
+
+static DEVICE_ATTR(value_mV, S_IRUGO, tsc2004_aux_value_mV_show, NULL);
+
+static ssize_t tsc2004_aux_ref_voltage_show(struct device *dev,
+					    struct device_attribute *attr,
+					    char *buf)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct tsc2004 *ts = i2c_get_clientdata(client);
+
+	return sprintf(buf, "%d\n", ts->ref_voltage_mV);
+}
+
+static ssize_t tsc2004_aux_ref_voltage_store(struct device *dev,
+					     struct device_attribute *attr,
+					     const char *buf, size_t size)
+{
+	struct i2c_client *client = to_i2c_client(dev);
+	struct tsc2004 *ts = i2c_get_clientdata(client);
+	unsigned int val;
+	int ret;
+
+	ret = kstrtouint(buf, 0, &val);
+	if (ret)
+		return ret;
+
+	ts->ref_voltage_mV = val;
+
+	return ret ? : size;
+}
+
+static DEVICE_ATTR(ref_voltage_mV, S_IWUSR | S_IRUGO,
+		   tsc2004_aux_ref_voltage_show,
+		   tsc2004_aux_ref_voltage_store);
+
+static struct attribute *tsc2004_attrs[] = {
+	&dev_attr_value_mV.attr,
+	&dev_attr_ref_voltage_mV.attr,
+	NULL
+};
+
+static const struct attribute_group tsc2004_attr_group = {
+	.name		= "adc_aux",
+	.attrs		= tsc2004_attrs,
+};
+
 static int tsc2004_probe(struct i2c_client *client,
 				   const struct i2c_device_id *id)
 {
@@ -467,10 +635,6 @@ static int tsc2004_probe(struct i2c_client *client,
 	struct tsc2004_platform_data alt_pdata;
 	struct input_dev *input_dev;
 	int err;
-
-	printk("tsc2004_probe() -> IRQ=%d\n", client->irq);
-
-
 
 	if (!i2c_check_functionality(client->adapter,
 				     I2C_FUNC_SMBUS_READ_WORD_DATA))
@@ -483,14 +647,18 @@ static int tsc2004_probe(struct i2c_client *client,
 		goto err_free_mem;
 	}
 
-    if (!pdata) {
-        err = tsc2004_get_devtree_pdata(&client->dev, &alt_pdata);
-        if (err) {
-        	dev_err(&client->dev, "platform data is required!\n");
-        	return err;
-        }
-        	pdata = &alt_pdata;
+	if (!pdata) {
+		err = tsc2004_get_devtree_pdata(&client->dev, &alt_pdata);
+		if (err) {
+			dev_err(&client->dev, "platform data is required!\n");
+			return err;
+		}
+		pdata = &alt_pdata;
 	}
+
+	dev_info(&client->dev, "IRQ #%d, GPIO #%d (%d.%d)\n",
+				client->irq, tsc2004gpio,
+				(tsc2004gpio / 32) + 1, tsc2004gpio % 32 );
 
 	ts->client = client;
 	ts->irq = client->irq;
@@ -501,6 +669,8 @@ static int tsc2004_probe(struct i2c_client *client,
 	ts->x_plate_ohms      = pdata->x_plate_ohms;
 	ts->get_pendown_state = pdata->get_pendown_state;
 	ts->clear_penirq      = pdata->clear_penirq;
+	ts->ref_voltage_mV    = DEF_AUX_REF_VALUE;
+	ts->aux_value         = AUX_VALUE_INVALID;
 
 	snprintf(ts->phys, sizeof(ts->phys),
 		 "%s/input0", dev_name(&client->dev));
@@ -516,6 +686,8 @@ static int tsc2004_probe(struct i2c_client *client,
 	input_set_abs_params(input_dev, ABS_Y, 0, MAX_12BIT, 0, 0);
 	input_set_abs_params(input_dev, ABS_PRESSURE, 0, MAX_12BIT, 0, 0);
 
+	atomic_set(&ts->aux_lock, false);
+
 	if (pdata->init_platform_hw)
 		pdata->init_platform_hw();
 
@@ -527,17 +699,28 @@ static int tsc2004_probe(struct i2c_client *client,
 	}
 
 	/* Prepare for touch readings */
-	err = tsc2004_prepare_for_reading(ts);
+	err = tsc2004_prepare_for_reading_touch(ts);
 	if (err < 0)
 		goto err_free_irq;
 
+	/* Create sysfs entries */
+	err = sysfs_create_group(&client->dev.kobj, &tsc2004_attr_group);
+	if (err) {
+		dev_err(&client->dev,
+			"Failed to create sysfs attributes, err: %d\n", err);
+		goto err_free_irq;
+	}
+
 	err = input_register_device(input_dev);
 	if (err)
-		goto err_free_irq;
+		goto err_remove_sysfs;
 
 	i2c_set_clientdata(client, ts);
 
 	return 0;
+
+ err_remove_sysfs:
+	sysfs_remove_group(&client->dev.kobj, &tsc2004_attr_group);
 
  err_free_irq:
 	tsc2004_free_irq(ts);
@@ -553,6 +736,8 @@ static int tsc2004_remove(struct i2c_client *client)
 {
 	struct tsc2004	*ts = i2c_get_clientdata(client);
 	struct tsc2004_platform_data *pdata = client->dev.platform_data;
+
+	sysfs_remove_group(&client->dev.kobj, &tsc2004_attr_group);
 
 	tsc2004_free_irq(ts);
 

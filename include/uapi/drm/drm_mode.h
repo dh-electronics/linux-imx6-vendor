@@ -24,8 +24,8 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef _DRM_MODE_H
-#define _DRM_MODE_H
+#ifndef _UAPI_DRM_MODE_H
+#define _UAPI_DRM_MODE_H
 
 #include <linux/types.h>
 

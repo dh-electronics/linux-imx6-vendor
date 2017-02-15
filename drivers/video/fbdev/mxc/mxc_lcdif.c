@@ -233,6 +233,9 @@ static int mxc_lcdif_probe(struct platform_device *pdev)
 	struct mxc_lcdif_data *lcdif;
 	struct mxc_lcd_platform_data *plat_data;
 
+	if (get_bootarg_content("parallel_display.disable", NULL, NULL))
+		return 0;
+
 	dev_dbg(&pdev->dev, "%s enter\n", __func__);
 	lcdif = devm_kzalloc(&pdev->dev, sizeof(struct mxc_lcdif_data),
 				GFP_KERNEL);

@@ -15,6 +15,7 @@
 #include <linux/export.h>
 #include <linux/kernel.h>
 #include <linux/string.h>
+#include <linux/slab.h>
 
 /*
  *	If a hyphen was found in get_option, this will handle the
@@ -189,3 +190,130 @@ bool parse_option_str(const char *str, const char *option)
 
 	return false;
 }
+
+/**
+ *	find_bootarg_content - Parse cmdline and give content info back
+ *	@par_name: Parameter name to be parsed
+ *	@pos: Start position of the content (within the cmdline string)
+ *	@len: Length of the content
+ *
+ *	This function parses the cmdline and give position and length of the
+ *	content back. If parameter hasn't a value it returns also true but the
+ *	length will be zero.
+ *
+ *	Return true if par_name is found
+ */
+bool find_bootarg_content(const char *par_name, int *pos, int *len)
+{
+	int i = 0;
+	int end = 0;
+	int pos_value = 0;
+	int len_value = 0;
+	const char *cmdline = saved_command_line;
+
+	/* Not possible */
+	if (strlen(par_name) > strlen(cmdline))
+		return false;
+
+	end = strlen(cmdline) - strlen(par_name) + 1;
+	for (i = 0; i < end; i++)
+		if (!strncmp( cmdline + i, par_name, strlen(par_name)))
+			break;
+
+	/* Parameter name wasn't found */
+	if (i == end)
+		return false;
+
+	pos_value = i + strlen(par_name);
+	len_value = 0;
+
+	/* Parameter without value */
+	if ((cmdline[pos_value] == 0x20) || (cmdline[pos_value] == 0x00))
+		return true;
+
+	/* Paremeter with value: There must be a '=' after parameter name */
+	if (cmdline[pos_value] != '=')
+		return false;
+
+	/* Skip character '=' */
+	(pos_value)++;
+
+	/* There must be a character other that delimiter (space) or termination */
+	if ((cmdline[pos_value] == 0x20) || (cmdline[pos_value] == 0x00))
+		return false;
+
+	for (i = pos_value; i < strlen(cmdline); i++)
+		if ((cmdline[i] == 0x20) || (cmdline[i] == 0x00))
+			break;
+
+	len_value = i - pos_value;
+
+	if (pos != NULL)
+		*pos = pos_value;
+
+	if (len != NULL)
+		*len = len_value;
+
+	return true;
+}
+
+/**
+ *	get_bootarg_content - Parse cmdline and give the found content back
+ *	@par_name: Parameter name to be parsed
+ *	@values: Pointer to an array of strings, which contain the content
+ *	@size: Number of array elements
+ *
+ *	This function parses the cmdline and give the found content back. Each
+ *	name and value combo e.g. CLK:100 (separated by comma) is stored in a
+ *	single string. The number of found name and value combos were given back
+.*	by size. If parameter hasn't a value it returns also true but the size
+.*	will be zero.
+ *
+ *	Return true if par_name is found
+ */
+bool get_bootarg_content(const char *par_name, char ***values, int *size)
+{
+	const char *cmdline = saved_command_line;
+	int pos = 0;
+	int len = 0;
+	int i = 0;
+	int index = 0;
+	char *par_str = NULL;
+	bool ret = false;
+
+	ret = find_bootarg_content(par_name, &pos, &len);
+
+	/* If caller only want to check for par_name
+	   Don't allocate memory, just leave here */
+	if ((values == NULL) || (size == NULL))
+		return ret;
+
+	*size = 0;
+	if ((ret == true) && (len != 0)) {
+		par_str = kzalloc(len + 1, GFP_KERNEL); /* (+1) => termination */
+		if (par_str) {
+			strncpy(par_str, cmdline + pos, len);
+
+			/* Replace separator ',' with zero (termination) */
+			for (i = 0; i < len; i++)
+				if (par_str[i] == ',')
+					par_str[i] = '\0';
+
+			/* Determine the amound of values */
+			for (i = 0; i < len + 1; i++) /* (+1) also count last termination */
+				if (par_str[i] == '\0')
+					(*size)++;
+
+			/* Separate value strings */
+			*values = kzalloc((*size)*sizeof(char *), GFP_KERNEL);
+			index = 0;
+			(*values)[index++] = par_str;
+			for (i = 0; i < len; i++)
+				if (par_str[i] == '\0')
+					(*values)[index++] = par_str + i + 1;
+		}
+	}
+
+	return ret;
+}
+EXPORT_SYMBOL(get_bootarg_content);

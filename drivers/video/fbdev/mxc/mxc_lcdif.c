@@ -19,6 +19,8 @@
 #include <linux/of_device.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/platform_device.h>
+#include <drm/drm_crtc.h>
+#include <video/of_display_timing.h>
 
 #include "mxc_dispdrv.h"
 
@@ -26,6 +28,8 @@ struct mxc_lcd_platform_data {
 	u32 default_ifmt;
 	u32 ipu_id;
 	u32 disp_id;
+	struct fb_videomode *modedb;
+	int modedb_sz;
 };
 
 struct mxc_lcdif_data {
@@ -67,6 +71,12 @@ static int lcdif_init(struct mxc_dispdrv_handle *disp,
 	if (ret < 0)
 		return ret;
 
+	/* fb_videomode is provided by bootargs or device tree */
+	if ( plat_data->modedb ) {
+		modedb = plat_data->modedb;
+		modedb_sz = plat_data->modedb_sz;
+	}
+
 	ret = fb_find_mode(&setting->fbi->var, setting->fbi, setting->dft_mode_str,
 				modedb, modedb_sz, NULL, setting->default_bpp);
 	if (!ret) {
@@ -106,6 +116,17 @@ static int lcd_get_of_property(struct platform_device *pdev,
 	int err;
 	u32 ipu_id, disp_id;
 	const char *default_ifmt;
+	char **par_value = NULL;
+	int size = 0;
+	struct drm_display_mode dmode;
+	bool dmode_found = false;
+	char *name = NULL;
+	int display_id = 0;
+	struct device_node *node = NULL;
+	const char *pstr = NULL;
+
+	plat_data->modedb = NULL;
+	plat_data->modedb_sz = 0;
 
 	err = of_property_read_string(np, "default_ifmt", &default_ifmt);
 	if (err) {
@@ -150,6 +171,56 @@ static int lcd_get_of_property(struct platform_device *pdev,
 	else {
 		dev_err(&pdev->dev, "err default_ifmt!\n");
 		return -ENOENT;
+	}
+
+	/* Getting fb_videomode from bootargs or device tree */
+	dmode_found = false;
+	get_bootarg_content("parallel_display.timings", &par_value, &size);
+	if (size != 0) {
+		printk("Parallel display timings from bootargs (#%d):\n", size );
+		if (!bootargs_get_drm_display_mode(par_value, size, &dmode)) {
+			display_id = (s32)bootargs_get_property_value( par_value, size, "ID", (-1) );
+			if( display_id < 0 ) {
+				name = "BOOTARG_DISPLAY";
+			}
+			else {
+				#define SIZE_OF_NAME 30
+				name = kzalloc(SIZE_OF_NAME, GFP_KERNEL);
+				snprintf(name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
+				#undef SIZE_OF_NAME
+			}
+			dmode_found = true;
+		}
+	}
+	else {
+		if (of_get_child_by_name( np, "display-timings" ) != NULL)
+			printk("Parallel display timings from device tree %s:\n", of_node_full_name(np));
+		if (!of_get_drm_display_mode(np, &dmode, OF_USE_NATIVE_MODE)) {
+			node = of_get_child_by_name( np, "display-timings" );
+			if( node != NULL ) {
+				node = of_get_next_child( node, NULL );
+				if( node != NULL )
+					if( !of_property_read_string( node, "dh-display-ID", &pstr ) ) {
+						if (kstrtoint(pstr, 10, &display_id) != 0) {
+							name = "DT_DISPLAY";
+						}
+						else {
+							#define SIZE_OF_NAME 30
+							name = kzalloc(SIZE_OF_NAME, GFP_KERNEL);
+							snprintf(name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
+							#undef SIZE_OF_NAME
+						}
+					}
+			}
+			dmode_found = true;
+		}
+	}
+	if (dmode_found) {
+		plat_data->modedb = kzalloc(sizeof(struct fb_videomode), GFP_KERNEL);
+		if (plat_data->modedb) {
+			drm_display_mode_to_fb_videomode(name, &dmode, plat_data->modedb);
+			plat_data->modedb_sz = 1;
+		}
 	}
 
 	return err;

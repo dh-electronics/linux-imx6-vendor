@@ -66,7 +66,6 @@
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "lcd";
 		interface_pix_fmt = "RGB24";
-		mode_str ="DH_LCD_ID_13";
 		default_bpp = <32>;
 		int_clk = <0>;
 		late_init = <0>;
@@ -114,6 +113,26 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_dhcom_ipu1>;
 		status = "okay";
+
+		display-timings {
+			// DH display ID 13
+			DataImage_7inch_FG0700G3DSSW {
+				dh-display-ID = "013";
+				clock-frequency = <33260000>;
+				hactive = <800>;
+				vactive = <480>;
+				hfront-porch = <42>;
+				hback-porch = <86>;
+				hsync-len = <128>;
+				vfront-porch = <10>;
+				vback-porch = <33>;
+				vsync-len = <2>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <1>;
+			};
+		};
 	};
 
 	v4l2_out {
@@ -218,7 +237,6 @@
 				MX6QDL_PAD_DI0_PIN15__IPU1_DI0_PIN15       0x10         // RGB_DATA_EN
 				MX6QDL_PAD_DI0_PIN2__IPU1_DI0_PIN02        0x10         // RGB_HSYNC
 				MX6QDL_PAD_DI0_PIN3__IPU1_DI0_PIN03        0x10         // RGB_VSYNC
-			//	MX6QDL_PAD_DI0_PIN4__IPU1_DI0_PIN04        0x80000000   // Used as GPIO F
 				MX6QDL_PAD_DISP0_DAT0__IPU1_DISP0_DATA00   0x10
 				MX6QDL_PAD_DISP0_DAT1__IPU1_DISP0_DATA01   0x10
 				MX6QDL_PAD_DISP0_DAT2__IPU1_DISP0_DATA02   0x10

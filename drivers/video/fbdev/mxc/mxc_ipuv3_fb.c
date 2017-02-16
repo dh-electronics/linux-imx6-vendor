@@ -3027,7 +3027,8 @@ static int mxcfb_dispdrv_init(struct platform_device *pdev,
 				mxcfbi->ipu_di, mxcfbi->ipu_id);
 	}
 
-	dev_info(&pdev->dev, "registered mxc display driver %s\n", disp_dev);
+	dev_info(&pdev->dev, "registered mxc display driver %s (%dx%d)\n",
+		 disp_dev, fbi->var.xres, fbi->var.yres);
 
 	return ret;
 }

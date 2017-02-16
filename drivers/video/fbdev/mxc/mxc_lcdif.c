@@ -95,6 +95,23 @@ static int lcdif_init(struct mxc_dispdrv_handle *disp,
 		}
 	}
 
+	if (get_bootarg_content("show_fbvm", NULL, NULL)) {
+		struct fb_videomode m;
+		fb_var_to_videomode(&m, &setting->fbi->var);
+		if ( plat_data->modedb ) {
+			m.name = plat_data->modedb->name;
+		}
+		else {
+			for (i = 0; i < modedb_sz; i++) {
+				if (fb_mode_is_equal(&m, &modedb[i])) {
+					m.name = modedb[i].name;
+					break;
+				}
+			}
+		}
+		show_fb_videomode(&m);
+	}
+
 	return ret;
 }
 

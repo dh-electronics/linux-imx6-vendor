@@ -38,6 +38,7 @@
 #include <video/of_videomode.h>
 #include <video/videomode.h>
 #include <drm/drm_modes.h>
+#include <linux/mxcfb.h>
 
 #include "drm_crtc_internal.h"
 
@@ -663,6 +664,62 @@ void drm_display_mode_to_videomode(const struct drm_display_mode *dmode,
 		vm->flags |= DISPLAY_FLAGS_DOUBLECLK;
 }
 EXPORT_SYMBOL_GPL(drm_display_mode_to_videomode);
+
+/**
+ * drm_display_mode_to_fb_videomode - fill in @fbvm using @dmode,
+ * @name: name for fb_videomode
+ * @dmode: drm_display_mode structure to use as source
+ * @fbvm: fb_videomode structure to use as destination
+ *
+ * Fills out @fbvm using the display mode specified in @dmode.
+ */
+void drm_display_mode_to_fb_videomode(const char *name,
+				      const struct drm_display_mode *dmode,
+				      struct fb_videomode *fbvm)
+{
+	if (name)
+		fbvm->name = name;
+	fbvm->refresh = 0;
+
+	fbvm->xres = dmode->hdisplay;
+	fbvm->right_margin = dmode->hsync_start - dmode->hdisplay;;
+	fbvm->hsync_len = dmode->hsync_end - dmode->hsync_start;
+	fbvm->left_margin = dmode->htotal - dmode->hsync_end;
+
+	fbvm->yres = dmode->vdisplay;
+	fbvm->lower_margin = dmode->vsync_start - dmode->vdisplay;
+	fbvm->vsync_len = dmode->vsync_end - dmode->vsync_start;
+	fbvm->upper_margin = dmode->vtotal - dmode->vsync_end;
+
+	fbvm->pixclock = 1000000000 / dmode->clock;
+
+	fbvm->sync = 0;
+	if (dmode->flags & DRM_MODE_FLAG_PHSYNC)
+		fbvm->sync |= FB_SYNC_HOR_HIGH_ACT;
+	else if (dmode->flags & DRM_MODE_FLAG_NHSYNC)
+		fbvm->sync &= ~FB_SYNC_HOR_HIGH_ACT;
+	if (dmode->flags & DRM_MODE_FLAG_PVSYNC)
+		fbvm->sync |= FB_SYNC_VERT_HIGH_ACT;
+	else if (dmode->flags & DRM_MODE_FLAG_NVSYNC)
+		fbvm->sync &= ~FB_SYNC_VERT_HIGH_ACT;
+	if (dmode->flags & DRM_MODE_FLAG_DE_LOW)
+		fbvm->sync |= FB_SYNC_OE_LOW_ACT;
+	else if (dmode->flags & DRM_MODE_FLAG_DE_HIGH)
+		fbvm->sync &= ~FB_SYNC_OE_LOW_ACT;
+	if (dmode->flags & DRM_MODE_FLAG_PIXDATA_POSEDGE)
+		fbvm->sync |= FB_SYNC_CLK_LAT_FALL;
+	else if (dmode->flags & DRM_MODE_FLAG_PIXDATA_NEGEDGE)
+		fbvm->sync &= ~FB_SYNC_CLK_LAT_FALL;
+
+	fbvm->vmode = FB_VMODE_NONINTERLACED;
+	if (dmode->flags & DRM_MODE_FLAG_INTERLACE)
+		fbvm->vmode |= FB_VMODE_INTERLACED;
+	if (dmode->flags & DRM_MODE_FLAG_DBLSCAN)
+		fbvm->vmode |= FB_VMODE_DOUBLE;
+
+	fbvm->flag = 0;
+}
+EXPORT_SYMBOL_GPL(drm_display_mode_to_fb_videomode);
 
 /**
  * bootargs_get_drm_display_mode - get a drm_display_mode from bootargs

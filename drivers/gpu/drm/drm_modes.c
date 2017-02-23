@@ -722,6 +722,93 @@ void drm_display_mode_to_fb_videomode(const char *name,
 EXPORT_SYMBOL_GPL(drm_display_mode_to_fb_videomode);
 
 /**
+ * show_fb_videomode - Shows @fbvm struct,
+ * @fbvm: fb_videomode to be displayed
+ *
+ * Shows.@fbvm struct as programmable stuct.
+ */
+void show_fb_videomode(const struct fb_videomode *fbvm)
+{
+	int pos = 0;
+	
+	printk("fb_videomode:\n");
+	printk("  {\n");
+	printk("  \"%s\", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d,\n",
+	       fbvm->name, fbvm->refresh, fbvm->xres, fbvm->yres, fbvm->pixclock,
+	       fbvm->left_margin, fbvm->right_margin, fbvm->upper_margin,
+	       fbvm->lower_margin, fbvm->hsync_len, fbvm->vsync_len );
+
+	/* sync */
+	pos = 0;
+	if (fbvm->sync & FB_SYNC_HOR_HIGH_ACT) {
+		if (pos == 0)
+			printk("  ");
+		else
+			printk("|");
+		printk("FB_SYNC_HOR_HIGH_ACT");
+		pos++;
+	}
+	if (fbvm->sync & FB_SYNC_VERT_HIGH_ACT) {
+		if (pos == 0)
+			printk("  ");
+		else
+			printk("|");
+		printk("FB_SYNC_VERT_HIGH_ACT");
+		pos++;
+	}
+	if (fbvm->sync & FB_SYNC_OE_LOW_ACT) {
+		if (pos == 0)
+			printk("  ");
+		else
+			printk("|");
+		printk("FB_SYNC_OE_LOW_ACT");
+		pos++;
+	}
+	if (fbvm->sync & FB_SYNC_CLK_LAT_FALL) {
+		if (pos == 0)
+			printk("  ");
+		else
+			printk("|");
+		printk("FB_SYNC_CLK_LAT_FALL");
+		pos++;
+	}
+	if( pos > 0 )
+		printk(",\n");
+	else
+		printk("  0,\n");
+
+	/* vmode */
+	if (fbvm->vmode == FB_VMODE_NONINTERLACED) {
+		printk("  FB_VMODE_NONINTERLACED,\n");
+	}
+	else {
+		pos = 0;
+		if (fbvm->vmode & FB_VMODE_INTERLACED) {
+			if (pos == 0)
+				printk("  ");
+			else
+				printk("|");
+			printk("FB_VMODE_INTERLACED");
+			pos++;
+		}
+		if (fbvm->vmode & FB_VMODE_DOUBLE) {
+			if (pos == 0)
+				printk("  ");
+			else
+				printk("|");
+			printk("FB_VMODE_DOUBLE");
+			pos++;
+		}
+		printk(",\n");
+	}
+	
+
+	/* flag */;
+	printk("  0,},\n");
+}
+EXPORT_SYMBOL_GPL(show_fb_videomode);
+
+/**
  * bootargs_get_drm_display_mode - get a drm_display_mode from bootargs
  * @timings: array of display values
  * @size: number of array elements

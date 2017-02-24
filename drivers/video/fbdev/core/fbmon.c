@@ -34,6 +34,7 @@
 #include <video/of_videomode.h>
 #include <video/videomode.h>
 #include "../edid.h"
+#include <linux/mxcfb.h>
 
 /*
  * EDID parser
@@ -1422,6 +1423,10 @@ int fb_videomode_from_videomode(const struct videomode *vm,
 		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
 	if (vm->flags & DISPLAY_FLAGS_VSYNC_HIGH)
 		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
+	if (vm->flags & DISPLAY_FLAGS_DE_LOW)
+		fbmode->sync |= FB_SYNC_OE_LOW_ACT;
+	if (vm->flags & DISPLAY_FLAGS_PIXDATA_POSEDGE)
+		fbmode->sync |= FB_SYNC_CLK_LAT_FALL;
 	if (vm->flags & DISPLAY_FLAGS_INTERLACED)
 		fbmode->vmode |= FB_VMODE_INTERLACED;
 	if (vm->flags & DISPLAY_FLAGS_DOUBLESCAN)

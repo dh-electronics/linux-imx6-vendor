@@ -3372,6 +3372,19 @@ static int mxcfb_get_of_property(struct platform_device *pdev,
 		dev_dbg(&pdev->dev, "get of property disp_dev fail\n");
 		return err;
 	}
+
+	/* If allowed overwrite device tree value, prefer lcd */
+	if (of_property_read_bool(np, "disp_dev_allow_modifying_by_bootargs")) {
+		if (get_bootarg_content("parallel_display.timings", NULL, NULL)) {
+			disp_dev = "lcd";
+		} else {
+			if (get_bootarg_content("imx_ldb.timings0", NULL, NULL))
+				disp_dev = "ldb";
+			if (get_bootarg_content("imx_ldb.timings1", NULL, NULL))
+				disp_dev = "ldb";
+		}
+	}
+
 	err = of_property_read_string(np, "mode_str", &mode_str);
 	if (err < 0)
 		dev_dbg(&pdev->dev, "get of property mode_str fail\n");

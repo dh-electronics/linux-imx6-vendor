@@ -206,6 +206,7 @@ void drm_display_mode_to_fb_videomode(const char *name,
 				      const struct drm_display_mode *dmode,
 				      struct fb_videomode *fbvm);
 void show_fb_videomode(const struct fb_videomode *fbvm);
+int bootargs_get_videomode_console(char **timings, int size, struct videomode *vm);
 int bootargs_get_drm_display_mode(char **timings, int size,
 				  struct drm_display_mode *dmode);
 int of_get_videomode_console(struct device_node *np,

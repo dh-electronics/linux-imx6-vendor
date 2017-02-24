@@ -809,15 +809,13 @@ void show_fb_videomode(const struct fb_videomode *fbvm)
 EXPORT_SYMBOL_GPL(show_fb_videomode);
 
 /**
- * bootargs_get_drm_display_mode - get a drm_display_mode from bootargs
+ * bootargs_get_videomode_console - get a videomode from bootargs with console output
  * @timings: array of display values
  * @size: number of array elements
- * @dmode: will be set to the return value
+ * @vm: will be set to the return value
  */
-int bootargs_get_drm_display_mode(char **timings, int size,
-				  struct drm_display_mode *dmode)
+int bootargs_get_videomode_console(char **timings, int size, struct videomode *vm)
 {
-	struct videomode vm;
 	int display_id = 0;
 
 	display_id = (s32)bootargs_get_property_value( timings, size, "ID", (-1) );
@@ -827,58 +825,75 @@ int bootargs_get_drm_display_mode(char **timings, int size,
 	else
 		printk("%03d\n", display_id );
 
-	vm.pixelclock = (unsigned long)bootargs_get_property_value( timings, size, "PCLK", 33260000 );
-	printk("  pixelclock    = %lu Hz\n", vm.pixelclock );
+	vm->pixelclock = (unsigned long)bootargs_get_property_value( timings, size, "PCLK", 33260000 );
+	printk("  pixelclock    = %lu Hz\n", vm->pixelclock );
 
-	vm.hactive = (u32)bootargs_get_property_value( timings, size, "XRES", 800 );
-	printk("  hactive       = %d px\n", vm.hactive );
+	vm->hactive = (u32)bootargs_get_property_value( timings, size, "XRES", 800 );
+	printk("  hactive       = %d px\n", vm->hactive );
 
-	vm.vactive = (u32)bootargs_get_property_value( timings, size, "YRES", 480 );
-	printk("  vactive       = %d px\n", vm.vactive );
+	vm->vactive = (u32)bootargs_get_property_value( timings, size, "YRES", 480 );
+	printk("  vactive       = %d px\n", vm->vactive );
 
-	vm.hfront_porch = (u32)bootargs_get_property_value( timings, size, "HFP", 42 );
-	printk("  hfront_porch  = %d px\n", vm.hfront_porch );
+	vm->hfront_porch = (u32)bootargs_get_property_value( timings, size, "HFP", 42 );
+	printk("  hfront_porch  = %d px\n", vm->hfront_porch );
 
-	vm.hback_porch = (u32)bootargs_get_property_value( timings, size, "HBP", 86 );
-	printk("  hback_porch   = %d px\n", vm.hback_porch );
+	vm->hback_porch = (u32)bootargs_get_property_value( timings, size, "HBP", 86 );
+	printk("  hback_porch   = %d px\n", vm->hback_porch );
 
-	vm.hsync_len = (u32)bootargs_get_property_value( timings, size, "HSYNC", 128 );
-	printk("  hsync_len     = %d px\n", vm.hsync_len );
+	vm->hsync_len = (u32)bootargs_get_property_value( timings, size, "HSYNC", 128 );
+	printk("  hsync_len     = %d px\n", vm->hsync_len );
 
-	vm.vfront_porch = (u32)bootargs_get_property_value( timings, size, "VFP", 10 );
-	printk("  vfront_porch  = %d lines\n", vm.vfront_porch );
+	vm->vfront_porch = (u32)bootargs_get_property_value( timings, size, "VFP", 10 );
+	printk("  vfront_porch  = %d lines\n", vm->vfront_porch );
 
-	vm.vback_porch = (u32)bootargs_get_property_value( timings, size, "VBP", 33 );
-	printk("  vback_porch   = %d lines\n", vm.vback_porch );
+	vm->vback_porch = (u32)bootargs_get_property_value( timings, size, "VBP", 33 );
+	printk("  vback_porch   = %d lines\n", vm->vback_porch );
 
-	vm.vsync_len = (u32)bootargs_get_property_value( timings, size, "VSYNC", 2 );
-	printk("  vsync_len     = %d lines\n", vm.vsync_len );
+	vm->vsync_len = (u32)bootargs_get_property_value( timings, size, "VSYNC", 2 );
+	printk("  vsync_len     = %d lines\n", vm->vsync_len );
 
 
-	vm.flags = 0;
+	vm->flags = 0;
 
 	if( (u32)bootargs_get_property_value( timings, size, "HINV", 1 ) )
-		vm.flags |= DISPLAY_FLAGS_HSYNC_LOW;
+		vm->flags |= DISPLAY_FLAGS_HSYNC_LOW;
 	else
-		vm.flags |= DISPLAY_FLAGS_HSYNC_HIGH;
+		vm->flags |= DISPLAY_FLAGS_HSYNC_HIGH;
 
 	if( (u32)bootargs_get_property_value( timings, size, "VINV", 1 ) )
-		vm.flags |= DISPLAY_FLAGS_VSYNC_LOW;
+		vm->flags |= DISPLAY_FLAGS_VSYNC_LOW;
 	else
-		vm.flags |= DISPLAY_FLAGS_VSYNC_HIGH;
+		vm->flags |= DISPLAY_FLAGS_VSYNC_HIGH;
 
 	if( (u32)bootargs_get_property_value( timings, size, "DEINV", 0 ) )
-		vm.flags |= DISPLAY_FLAGS_DE_LOW;
+		vm->flags |= DISPLAY_FLAGS_DE_LOW;
 	else
-		vm.flags |= DISPLAY_FLAGS_DE_HIGH;
+		vm->flags |= DISPLAY_FLAGS_DE_HIGH;
 
 	if( (u32)bootargs_get_property_value( timings, size, "PCLKPOL", 1 ) )
-		vm.flags |= DISPLAY_FLAGS_PIXDATA_POSEDGE;
+		vm->flags |= DISPLAY_FLAGS_PIXDATA_POSEDGE;
 	else
-		vm.flags |= DISPLAY_FLAGS_PIXDATA_NEGEDGE;
+		vm->flags |= DISPLAY_FLAGS_PIXDATA_NEGEDGE;
 
-	printk("  flags         = 0x%03X\n", vm.flags );
+	printk("  flags         = 0x%03X\n", vm->flags );
 
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(bootargs_get_videomode_console);
+
+/**
+ * bootargs_get_drm_display_mode - get a drm_display_mode from bootargs
+ * @timings: array of display values
+ * @size: number of array elements
+ * @dmode: will be set to the return value
+ */
+int bootargs_get_drm_display_mode(char **timings, int size,
+				  struct drm_display_mode *dmode)
+{
+	struct videomode vm;
+
+	bootargs_get_videomode_console(timings, size, &vm);
 
 	drm_display_mode_from_videomode(&vm, dmode);
 

@@ -65,6 +65,7 @@
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "lcd";
+		disp_dev_allow_modifying_by_bootargs;
 		interface_pix_fmt = "RGB24";
 		default_bpp = <32>;
 		int_clk = <0>;

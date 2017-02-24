@@ -890,6 +890,54 @@ EXPORT_SYMBOL_GPL(bootargs_get_drm_display_mode);
 
 #ifdef CONFIG_OF
 /**
+ * of_get_videomode_console - get a videomode from devicetree with console output
+ * @np: device_node with the timing specification
+ * @vm: will be set to the return value
+ * @index: index into the list of display timings in devicetree
+ *
+ * This function is expensive and should only be used, if only one mode is to be
+ * read from DT. To get multiple modes start with of_get_display_timings and
+ * work with that instead.
+ *
+ * Returns:
+ * 0 on success, a negative errno code when no of videomode node was found.
+ */
+int of_get_videomode_console(struct device_node *np,
+			     struct videomode *vm, int index)
+{
+	int ret;
+	struct device_node *node = NULL;
+	const char *pstr = NULL;
+
+	ret = of_get_videomode(np, vm, index);
+	if (ret)
+		return ret;
+
+	node = of_get_child_by_name( np, "display-timings" );
+	if( node != NULL ) {
+		node = of_get_next_child( node, NULL );
+		if( node != NULL ) {
+			printk("  DT-Name       = %s\n", node->name );
+			if( !of_property_read_string( node, "dh-display-ID", &pstr ) )
+				printk("  DH display ID = %s\n", pstr );
+		}
+	}
+	printk("  pixelclock    = %lu Hz\n", vm->pixelclock );
+	printk("  hactive       = %d px\n", vm->hactive );
+	printk("  vactive       = %d px\n", vm->vactive );
+	printk("  hfront_porch  = %d px\n", vm->hfront_porch );
+	printk("  hback_porch   = %d px\n", vm->hback_porch );
+	printk("  hsync_len     = %d px\n", vm->hsync_len );
+	printk("  vfront_porch  = %d lines\n", vm->vfront_porch );
+	printk("  vback_porch   = %d lines\n", vm->vback_porch );
+	printk("  vsync_len     = %d lines\n", vm->vsync_len );
+	printk("  flags         = 0x%03X\n", vm->flags );
+
+	return 0;
+}
+EXPORT_SYMBOL_GPL(of_get_videomode_console);
+
+/**
  * of_get_drm_display_mode - get a drm_display_mode from devicetree
  * @np: device_node with the timing specification
  * @dmode: will be set to the return value
@@ -907,32 +955,10 @@ int of_get_drm_display_mode(struct device_node *np,
 {
 	struct videomode vm;
 	int ret;
-	struct device_node *node = NULL;
-	const char *pstr = NULL;
 
-	ret = of_get_videomode(np, &vm, index);
+	ret = of_get_videomode_console(np, &vm, index);
 	if (ret)
 		return ret;
-
-	node = of_get_child_by_name( np, "display-timings" );
-	if( node != NULL ) {
-		node = of_get_next_child( node, NULL );
-		if( node != NULL ) {
-			printk("  DT-Name       = %s\n", node->name );
-			if( !of_property_read_string( node, "dh-display-ID", &pstr ) )
-				printk("  DH display ID = %s\n", pstr );
-		}
-	}
-	printk("  pixelclock    = %lu Hz\n", vm.pixelclock );
-	printk("  hactive       = %d px\n", vm.hactive );
-	printk("  vactive       = %d px\n", vm.vactive );
-	printk("  hfront_porch  = %d px\n", vm.hfront_porch );
-	printk("  hback_porch   = %d px\n", vm.hback_porch );
-	printk("  hsync_len     = %d px\n", vm.hsync_len );
-	printk("  vfront_porch  = %d lines\n", vm.vfront_porch );
-	printk("  vback_porch   = %d lines\n", vm.vback_porch );
-	printk("  vsync_len     = %d lines\n", vm.vsync_len );
-	printk("  flags         = 0x%03X\n", vm.flags );
 
 	drm_display_mode_from_videomode(&vm, dmode);
 

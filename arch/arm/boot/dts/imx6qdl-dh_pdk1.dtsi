@@ -122,13 +122,46 @@
 };
 
 &ldb {
-	ipu_id = <0>;
-	disp_id = <0>;
-	ext_ref = <0>;
-	mode = "sep0";
-	sec_ipu_id = <1>;
-	sec_disp_id = <1>;
 	status = "okay";
+
+	lvds-channel@0 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		crtc = "ipu1-di0";
+		primary;
+		status = "okay";
+
+		// Set your LVDS display timings here
+		// To Avoid interference comment the parallel display timings out
+	/*	display-timings {						
+			// DH display ID 10
+			LG_7inch_LB070WV8 {
+				dh-display-ID = "010";
+				clock-frequency = <33250000>;
+				hactive = <800>;
+				vactive = <480>;
+				hfront-porch = <64>;
+				hback-porch = <64>;
+				hsync-len = <128>;
+				vfront-porch = <10>;
+				vback-porch = <10>;
+				vsync-len = <25>;
+				hsync-active = <1>;
+				vsync-active = <1>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};*/
+
+	};
+
+	lvds-channel@1 {
+		fsl,data-mapping = "spwg";
+		fsl,data-width = <24>;
+		crtc = "ipu1-di1";
+		primary;							// primary if first channel is disabled by bootargs
+		status = "okay";
+	};
 };
 
 &pwm1 {										// Backlight PWM

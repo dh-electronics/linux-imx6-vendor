@@ -795,6 +795,12 @@ static int ldb_probe(struct platform_device *pdev)
 		if (!of_device_is_available(child))
 			continue;
 
+		/* Disable channel by bootargs */
+		if ((i == 0) && get_bootarg_content("imx_ldb.disable0", NULL, NULL))
+			continue;
+		if ((i == 1) && get_bootarg_content("imx_ldb.disable1", NULL, NULL))
+			continue;
+
 		if (++child_count > ldb->bus_mux_num) {
 			dev_err(dev, "too many LVDS channels\n");
 			return -EINVAL;

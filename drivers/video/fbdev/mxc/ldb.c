@@ -24,6 +24,7 @@
 #include <video/of_videomode.h>
 #include <video/videomode.h>
 #include "mxc_dispdrv.h"
+#include <drm/drm_crtc.h>
 
 #define DRIVER_NAME	"ldb"
 
@@ -697,6 +698,9 @@ static int ldb_probe(struct platform_device *pdev)
 	bool ext_ref;
 	int i, data_width, mapping, child_count = 0;
 	char clkname[16];
+	char **par_value[2] = { NULL, NULL };
+	int size[2] = { 0, 0 };
+	int property_value = 0;
 
 	ldb = devm_kzalloc(dev, sizeof(*ldb), GFP_KERNEL);
 	if (!ldb)
@@ -707,6 +711,9 @@ static int ldb_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to get parent regmap\n");
 		return PTR_ERR(ldb->regmap);
 	}
+
+	get_bootarg_content("imx_ldb.timings0", &par_value[0], &size[0]);
+	get_bootarg_content("imx_ldb.timings1", &par_value[1], &size[1]);
 
 	ldb->dev = dev;
 	ldb->bus_mux_num = ldb_info->bus_mux_num;
@@ -720,6 +727,12 @@ static int ldb_probe(struct platform_device *pdev)
 		ldb->ctrl |= LDB_BGREF_RMODE_INT;
 
 	ldb->spl_mode = of_property_read_bool(np, "split-mode");
+
+	/* Overwrite device tree value only if bootargs available and SPLIT is defined */
+	property_value = (int)bootargs_get_property_value(par_value[0], size[0], "SPLIT", (-1));
+	if ((size[0] != 0) && (property_value >= 0))
+		ldb->spl_mode = property_value;
+
 	if (ldb->spl_mode) {
 		if (ldb_info->split_cap) {
 			ldb->ctrl |= LDB_SPLIT_MODE_EN;
@@ -731,6 +744,12 @@ static int ldb_probe(struct platform_device *pdev)
 	}
 
 	ldb->dual_mode = of_property_read_bool(np, "dual-mode");
+
+	/* Overwrite device tree value only if bootargs available and DUAL is defined */
+	property_value = (int)bootargs_get_property_value(par_value[0], size[0], "DUAL", (-1));
+	if ((size[0] != 0) && (property_value >= 0))
+		ldb->dual_mode = property_value;
+
 	if (ldb->dual_mode) {
 		if (ldb_info->dual_cap) {
 			dev_info(dev, "dual mode\n");
@@ -834,9 +853,26 @@ static int ldb_probe(struct platform_device *pdev)
 			return -EINVAL;
 		}
 
-		ret = of_get_videomode(child, &chan->vm, 0);
-		if (ret)
-			return -EINVAL;
+		/* Getting videomode from bootargs or device tree */
+		if( size[i] != 0 ) {
+			printk("LVDS(%d%s%s) display timings from bootargs (#%d):\n", i,
+			       ldb->spl_mode ? "+1 split" : "",
+			       ldb->dual_mode ? "+1 dual" : "",
+			       size[i] );
+			ret = bootargs_get_videomode_console(par_value[i], size[i], &chan->vm);
+			if (ret)
+				chan->online = false;
+		} else {
+			printk("LVDS(%d%s%s) display timings from device tree %s:\n", i,
+			       ldb->spl_mode ? "+1 split" : "",
+			       ldb->dual_mode ? "+1 dual" : "",
+			       of_node_full_name(child));
+			if( of_get_child_by_name( child, "display-timings" ) == NULL )
+				printk("  => no timings specified\n");
+			ret = of_get_videomode_console(child, &chan->vm, 0);
+			if (ret)
+				chan->online = false;
+		}
 
 		sprintf(clkname, "ldb_di%d", i);
 		ldb->ldb_di_clk[i] = devm_clk_get(dev, clkname);

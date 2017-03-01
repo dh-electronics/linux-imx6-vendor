@@ -257,12 +257,15 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6d-dhcom2B-pdk1.dtb \
 	imx6d-dhcom3B-pdk2.dtb \
 	imx6d-dhcom3B-drc01.dtb \
+	imx6d-dhcom3H-pdk2.dtb \
 	imx6dl-dhcom2B-cfi2-100.dtb \
 	imx6dl-dhcom2B-cfi2-200.dtb \
 	imx6dl-dhcom2B-pdk1.dtb \
 	imx6dl-dhcom3B-pdk2.dtb \
 	imx6dl-dhcom3B-drc01.dtb \
 	imx6dl-dhcom3B-cfi2-200.dtb \
+	imx6dl-dhcom3H-cfi2-400.dtb \
+	imx6dl-dhcom3H-pdk2.dtb \
 	imx6dl-aristainetos_4.dtb \
 	imx6dl-aristainetos_7.dtb \
 	imx6dl-cubox-i.dtb \
@@ -300,6 +303,8 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6q-dhcom3B-pdk2.dtb \
 	imx6q-dhcom3B-drc01.dtb \
 	imx6q-dhcom3B-cfi2-200.dtb \
+	imx6q-dhcom3H-cfi2-400.dtb \
+	imx6q-dhcom3H-pdk2.dtb \
 	imx6q-arm2.dtb \
 	imx6q-arm2-hsic.dtb \
 	imx6q-pop-arm2.dtb \
@@ -351,6 +356,7 @@ dtb-$(CONFIG_SOC_IMX6Q) += \
 	imx6s-dhcom2B-pdk1.dtb \
 	imx6s-dhcom3B-pdk2.dtb \
 	imx6s-dhcom3B-drc01.dtb \
+	imx6s-dhcom3H-pdk2.dtb \
 	imx6dqscm-1gb-qwks-rev2-fix-ldo.dtb \
 	imx6dqscm-1gb-qwks-rev2-interleave-android-ldo.dtb \
 	imx6dqscm-1gb-qwks-rev2-wifi-fix-ldo.dtb \

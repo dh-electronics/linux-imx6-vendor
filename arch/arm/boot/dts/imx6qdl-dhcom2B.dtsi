@@ -100,7 +100,8 @@
 	status = "okay";
 };
 
-&fec {										// Ethernet 1 (100Mbit)
+#ifndef DHCOM_ETH_1G
+&fec {										// Ethernet (100MBit)
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_dhcom_enet_100M>;
 	phy-mode = "rmii";
@@ -122,6 +123,7 @@
 		};
 	};
 };
+#endif
 
 #define DHCOM_I2C1                  i2c1					// Use this define in board files!
 #define DHCOM_I2C1_PINCTRL          pinctrl_dhcom_i2c1				// ==> /dev/i2c-0

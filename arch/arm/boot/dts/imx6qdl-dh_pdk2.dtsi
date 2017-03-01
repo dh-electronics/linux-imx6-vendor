@@ -51,26 +51,6 @@
 		};
 	};
 
-	/* TODO GPIOs */
-	/*
-	gpio-keys {
-		compatible = "gpio-keys";
-
-		volume-up {
-			label = "Volume Up";
-			gpios = <&gpio1 4 0>;
-			gpio-key,wakeup;
-			linux,code = <115>; 	// KEY_VOLUMEUP
-		};
-
-		volume-down {
-			label = "Volume Down";
-			gpios = <&gpio1 5 0>;
-			gpio-key,wakeup;
-			linux,code = <114>;	// KEY_VOLUMEDOWN
-		};
-	};*/
-
 	mxcfb1: fb@0 {
 		compatible = "fsl,mxc_sdc_fb";
 		disp_dev = "lcd";
@@ -128,6 +108,26 @@
 		compatible = "fsl,mxc_v4l2_output";
 		status = "okay";
 	};
+
+	/* TODO GPIOs */
+	/*
+	gpio-keys {
+		compatible = "gpio-keys";
+
+		volume-up {
+			label = "Volume Up";
+			gpios = <&gpio1 4 0>;
+			gpio-key,wakeup;
+			linux,code = <115>; 	// KEY_VOLUMEUP
+		};
+
+		volume-down {
+			label = "Volume Down";
+			gpios = <&gpio1 5 0>;
+			gpio-key,wakeup;
+			linux,code = <114>;	// KEY_VOLUMEDOWN
+		};
+	};*/
 
 	clocks {
 		#address-cells = <1>;

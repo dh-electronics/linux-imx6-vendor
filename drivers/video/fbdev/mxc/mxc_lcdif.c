@@ -137,7 +137,7 @@ static int lcd_get_of_property(struct platform_device *pdev,
 	int size = 0;
 	struct drm_display_mode dmode;
 	bool dmode_found = false;
-	char *name = NULL;
+	const char *name = NULL;
 	int display_id = 0;
 	struct device_node *node = NULL;
 	const char *pstr = NULL;
@@ -199,11 +199,10 @@ static int lcd_get_of_property(struct platform_device *pdev,
 			display_id = (s32)bootargs_get_property_value( par_value, size, "ID", (-1) );
 			if( display_id < 0 ) {
 				name = "BOOTARG_DISPLAY";
-			}
-			else {
+			} else {
 				#define SIZE_OF_NAME 30
 				name = kzalloc(SIZE_OF_NAME, GFP_KERNEL);
-				snprintf(name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
+				snprintf((char *)name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
 				#undef SIZE_OF_NAME
 			}
 			dmode_found = true;
@@ -216,18 +215,20 @@ static int lcd_get_of_property(struct platform_device *pdev,
 			node = of_get_child_by_name( np, "display-timings" );
 			if( node != NULL ) {
 				node = of_get_next_child( node, NULL );
-				if( node != NULL )
+				if( node != NULL ) {
 					if( !of_property_read_string( node, "dh-display-ID", &pstr ) ) {
 						if (kstrtoint(pstr, 10, &display_id) != 0) {
 							name = "DT_DISPLAY";
-						}
-						else {
+						} else {
 							#define SIZE_OF_NAME 30
 							name = kzalloc(SIZE_OF_NAME, GFP_KERNEL);
-							snprintf(name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
+							snprintf((char *)name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
 							#undef SIZE_OF_NAME
 						}
+					} else {
+						name = node->name;
 					}
+				}
 			}
 			dmode_found = true;
 		}

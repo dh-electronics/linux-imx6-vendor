@@ -781,6 +781,9 @@ static int ldb_probe(struct platform_device *pdev)
 		int ret;
 		const char *name = NULL;
 		struct fb_videomode fb_vm;
+		int display_id = 0;
+		struct device_node *node = NULL;
+		const char *pstr = NULL;
 
 		ret = of_property_read_u32(child, "reg", &i);
 		if (ret || i < 0 || i > 1 || i >= ldb->bus_mux_num) {
@@ -862,13 +865,24 @@ static int ldb_probe(struct platform_device *pdev)
 		}
 
 		/* Getting videomode from bootargs or device tree */
+		name = NULL;
 		if( size[i] != 0 ) {
 			printk("LVDS(%d%s%s) display timings from bootargs (#%d):\n", i,
 			       ldb->spl_mode ? "+1 split" : "",
 			       ldb->dual_mode ? "+1 dual" : "",
 			       size[i] );
 			ret = bootargs_get_videomode_console(par_value[i], size[i], &chan->vm);
-			if (ret)
+			if (!ret) {
+				display_id = (s32)bootargs_get_property_value( par_value[i], size[i], "ID", (-1) );
+				if( display_id < 0 ) {
+					name = "BOOTARG_DISPLAY";
+				} else {
+					#define SIZE_OF_NAME 30
+					name = kzalloc(SIZE_OF_NAME, GFP_KERNEL);
+					snprintf((char *)name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
+					#undef SIZE_OF_NAME
+				}
+			} else
 				chan->online = false;
 		} else {
 			printk("LVDS(%d%s%s) display timings from device tree %s:\n", i,
@@ -878,7 +892,26 @@ static int ldb_probe(struct platform_device *pdev)
 			if( of_get_child_by_name( child, "display-timings" ) == NULL )
 				printk("  => no timings specified\n");
 			ret = of_get_videomode_console(child, &chan->vm, 0);
-			if (ret)
+			if (!ret) {
+				node = of_get_child_by_name( child, "display-timings" );
+				if( node != NULL ) {
+					node = of_get_next_child( node, NULL );
+					if( node != NULL ) {
+						if( !of_property_read_string( node, "dh-display-ID", &pstr ) ) {
+							if (kstrtoint(pstr, 10, &display_id) != 0) {
+								name = "DT_DISPLAY";
+							} else {
+								#define SIZE_OF_NAME 30
+								name = kzalloc(SIZE_OF_NAME, GFP_KERNEL);
+								snprintf((char *)name, SIZE_OF_NAME, "%s%d", "DH_LCD_ID_", display_id);
+								#undef SIZE_OF_NAME
+							}
+						} else {
+							name = node->name;
+						}
+					}
+				}
+			} else
 				chan->online = false;
 		}
 

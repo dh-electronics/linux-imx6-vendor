@@ -109,7 +109,7 @@ static int lcdif_init(struct mxc_dispdrv_handle *disp,
 				}
 			}
 		}
-		show_fb_videomode(&m);
+		show_fb_videomode(&m, "lcd");
 	}
 
 	return ret;

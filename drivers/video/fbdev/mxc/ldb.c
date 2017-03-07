@@ -779,6 +779,8 @@ static int ldb_probe(struct platform_device *pdev)
 		enum crtc crtc;
 		bool is_primary;
 		int ret;
+		const char *name = NULL;
+		struct fb_videomode fb_vm;
 
 		ret = of_property_read_u32(child, "reg", &i);
 		if (ret || i < 0 || i > 1 || i >= ldb->bus_mux_num) {
@@ -878,6 +880,14 @@ static int ldb_probe(struct platform_device *pdev)
 			ret = of_get_videomode_console(child, &chan->vm, 0);
 			if (ret)
 				chan->online = false;
+		}
+
+		if (get_bootarg_content("show_fbvm", NULL, NULL)) {
+			if (chan->online == true ) {
+				fb_videomode_from_videomode(&chan->vm, &fb_vm);
+				fb_vm.name = name;
+				show_fb_videomode(&fb_vm, "ldb");
+			}
 		}
 
 		sprintf(clkname, "ldb_di%d", i);

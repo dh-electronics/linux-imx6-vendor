@@ -724,19 +724,32 @@ EXPORT_SYMBOL_GPL(drm_display_mode_to_fb_videomode);
 /**
  * show_fb_videomode - Shows @fbvm struct,
  * @fbvm: fb_videomode to be displayed
+ * @str_type: display type ("lcd" or "ldb")
  *
  * Shows.@fbvm struct as programmable stuct.
  */
-void show_fb_videomode(const struct fb_videomode *fbvm)
+void show_fb_videomode(const struct fb_videomode *fbvm, const char *str_type)
 {
 	int pos = 0;
-	
+	enum { LCD, LDB } type;
+
+	type = LCD;
+	if (!strcmp(str_type, "lcd"))
+		type = LCD;
+	if (!strcmp(str_type, "ldb"))
+		type = LDB;
+
 	printk("fb_videomode:\n");
 	printk("  {\n");
-	printk("  \"%s\", %d, %d, %d, %d, %d, %d, %d, %d, %d, %d,\n",
-	       fbvm->name, fbvm->refresh, fbvm->xres, fbvm->yres, fbvm->pixclock,
-	       fbvm->left_margin, fbvm->right_margin, fbvm->upper_margin,
-	       fbvm->lower_margin, fbvm->hsync_len, fbvm->vsync_len );
+	printk("  \"%s\", %d, %d, %d, %d,%s %d, %d,%s %d, %d,%s %d, %d,\n",
+	       (fbvm->name != NULL) ? fbvm->name : "Unknown",
+	       fbvm->refresh, fbvm->xres, fbvm->yres, fbvm->pixclock,
+	       (type == LDB) ? "\n " : "",
+	       fbvm->left_margin, fbvm->right_margin,
+	       (type == LDB) ? "\n " : "",
+	       fbvm->upper_margin, fbvm->lower_margin,
+	       (type == LDB) ? "\n " : "",
+	       fbvm->hsync_len, fbvm->vsync_len );
 
 	/* sync */
 	pos = 0;
@@ -804,7 +817,10 @@ void show_fb_videomode(const struct fb_videomode *fbvm)
 	
 
 	/* flag */;
-	printk("  0,},\n");
+	if ( type == LCD )
+		printk("  0,},\n");
+	if ( type == LDB )
+		printk("  FB_MODE_IS_DETAILED,},\n");
 }
 EXPORT_SYMBOL_GPL(show_fb_videomode);
 

@@ -728,15 +728,16 @@ static int ldb_probe(struct platform_device *pdev)
 
 	ldb->spl_mode = of_property_read_bool(np, "split-mode");
 
-	/* Overwrite device tree value only if bootargs available and SPLIT is defined */
-	property_value = (int)bootargs_get_property_value(par_value[0], size[0], "SPLIT", (-1));
+	/* Overwrite device tree value only if bootargs available and DUAL is defined
+	   Bootarg DUAL means DUAL channel lvds in split mode */
+	property_value = (int)bootargs_get_property_value(par_value[0], size[0], "DUAL", (-1));
 	if ((size[0] != 0) && (property_value >= 0))
 		ldb->spl_mode = property_value;
 
 	if (ldb->spl_mode) {
 		if (ldb_info->split_cap) {
 			ldb->ctrl |= LDB_SPLIT_MODE_EN;
-			dev_info(dev, "split mode\n");
+			dev_info(dev, "DUAL channel lvds in split mode\n");
 		} else {
 			dev_err(dev, "cannot support split mode\n");
 			return -EINVAL;
@@ -744,15 +745,9 @@ static int ldb_probe(struct platform_device *pdev)
 	}
 
 	ldb->dual_mode = of_property_read_bool(np, "dual-mode");
-
-	/* Overwrite device tree value only if bootargs available and DUAL is defined */
-	property_value = (int)bootargs_get_property_value(par_value[0], size[0], "DUAL", (-1));
-	if ((size[0] != 0) && (property_value >= 0))
-		ldb->dual_mode = property_value;
-
 	if (ldb->dual_mode) {
 		if (ldb_info->dual_cap) {
-			dev_info(dev, "dual mode\n");
+			dev_info(dev, "DUAL channel lvds in dual mode\n");
 		} else {
 			dev_err(dev, "cannot support dual mode\n");
 			return -EINVAL;
@@ -868,8 +863,8 @@ static int ldb_probe(struct platform_device *pdev)
 		name = NULL;
 		if( size[i] != 0 ) {
 			printk("LVDS(%d%s%s) display timings from bootargs (#%d):\n", i,
-			       ldb->spl_mode ? "+1 split" : "",
-			       ldb->dual_mode ? "+1 dual" : "",
+			       ldb->spl_mode ? "+1" : "",
+			       ldb->dual_mode ? "=1" : "",
 			       size[i] );
 			ret = bootargs_get_videomode_console(par_value[i], size[i], &chan->vm);
 			if (!ret) {
@@ -886,8 +881,8 @@ static int ldb_probe(struct platform_device *pdev)
 				chan->online = false;
 		} else {
 			printk("LVDS(%d%s%s) display timings from device tree %s:\n", i,
-			       ldb->spl_mode ? "+1 split" : "",
-			       ldb->dual_mode ? "+1 dual" : "",
+			       ldb->spl_mode ? "+1" : "",
+			       ldb->dual_mode ? "=1" : "",
 			       of_node_full_name(child));
 			if( of_get_child_by_name( child, "display-timings" ) == NULL )
 				printk("  => no timings specified\n");

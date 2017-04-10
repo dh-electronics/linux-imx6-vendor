@@ -209,7 +209,7 @@
 };
 
 &weim {										// Memory interface is not active by default
-	status = "disable";
+	status = "disabled";
 };
 
 &uart1 {									// UART 1 (FF)

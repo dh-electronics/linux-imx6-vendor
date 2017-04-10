@@ -115,11 +115,14 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx53-smd.dtb \
 	imx6d-dhcom2B-pdk1.dtb \
 	imx6d-dhcom3B-pdk2.dtb \
+	imx6d-dhcom4B-pdk2.dtb \
 	imx6dl-dhcom2B-cfi2-100.dtb \
 	imx6dl-dhcom2B-cfi2-200.dtb \
 	imx6dl-dhcom2B-pdk1.dtb \
 	imx6dl-dhcom3B-pdk2.dtb \
 	imx6dl-dhcom3B-cfi2-200.dtb \
+	imx6dl-dhcom4B-cfi2-200.dtb \
+	imx6dl-dhcom4B-pdk2.dtb \
 	imx6dl-sabreauto.dtb \
 	imx6dl-sabreauto-ecspi.dtb \
 	imx6dl-sabreauto-flexcan1.dtb \
@@ -134,6 +137,8 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6q-dhcom2B-pdk1.dtb \
 	imx6q-dhcom3B-pdk2.dtb \
 	imx6q-dhcom3B-cfi2-200.dtb \
+	imx6q-dhcom4B-cfi2-200.dtb \
+	imx6q-dhcom4B-pdk2.dtb \
 	imx6q-arm2.dtb \
 	imx6q-sabreauto.dtb \
 	imx6q-sabreauto-ecspi.dtb \
@@ -146,6 +151,7 @@ dtb-$(CONFIG_ARCH_MXC) += \
 	imx6q-sbc6x.dtb \
 	imx6s-dhcom2B-pdk1.dtb \
 	imx6s-dhcom3B-pdk2.dtb \
+	imx6s-dhcom4B-pdk2.dtb \
 	imx6sl-evk.dtb \
 	imx6sl-evk-csi.dtb \
 	imx6sl-evk-ldo.dtb \

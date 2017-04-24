@@ -95,6 +95,12 @@ static struct fb_videomode lcdif_modedb[] = {
 	FB_SYNC_CLK_LAT_FALL,
 	FB_VMODE_NONINTERLACED,
 	0,},
+	{
+	/* DH Display 24: 480x272 @ 59 Hz , pixel clk @ 9.00MHz */
+	"DH_LCD_ID_24", 59, 480, 272, 111111, 40, 5, 8, 8, 1, 1,
+	FB_SYNC_CLK_LAT_FALL,
+	FB_VMODE_NONINTERLACED,
+	0,},
 };
 static int lcdif_modedb_sz = ARRAY_SIZE(lcdif_modedb);
 

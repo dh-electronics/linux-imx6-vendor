@@ -247,7 +247,7 @@
 };
 
 &weim {										// Memory interface is not active by default
-	status = "disable";
+	status = "disabled";
 };
 
 &ssi1 {

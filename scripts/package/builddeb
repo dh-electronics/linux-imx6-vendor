@@ -70,20 +70,43 @@ create_package() {
 
 # Some variables and settings used throughout the script
 version=$KERNELRELEASE
+version_name=$VERSION
+if [ -n "$PATCHLEVEL" ]; then
+version_name=$version_name.$PATCHLEVEL
+fi
+localversion=$(grep "CONFIG_LOCALVERSION=" $KCONFIG_CONFIG | sed 's/CONFIG_LOCALVERSION=//'| sed -e 's/^"//' -e 's/"$//')
+if [ -n "$localversion" ]; then
+version_name=$version_name$localversion
+fi
+if [ -n "$SERIES" ]; then
+version_name=$version_name-$SERIES
+fi
 revision=$(cat .version)
 if [ -n "$KDEB_PKGVERSION" ]; then
 	packageversion=$KDEB_PKGVERSION
 else
-	packageversion=$version-$revision
+	packageversion=$KERNELVERSION-$(date +%Y%m%d)
+	if [ -n $BUILD_NUM ]; then
+		packageversion=$packageversion-$BUILD_NUM
+	fi
+	if [ -n $DEV_STAGE ]; then
+		packageversion=$packageversion-$DEV_STAGE
+	fi
+fi
+if [ -z "$GIT_BRANCH" ]; then
+	GIT_BRANCH=$(cd $srctree && git branch | grep "*" | sed 's/* //')
+fi
+if [ -z "$GIT_COMMIT_DATE" ]; then
+	GIT_COMMIT_DATE=$(cd $srctree && git log --date=short --pretty=format:'%cd' -n 1)
 fi
 tmpdir="$objtree/debian/tmp"
 fwdir="$objtree/debian/fwtmp"
 kernel_headers_dir="$objtree/debian/hdrtmp"
 libc_headers_dir="$objtree/debian/headertmp"
 dbg_dir="$objtree/debian/dbgtmp"
-packagename=linux-image-$version
-fwpackagename=linux-firmware-image-$version
-kernel_headers_packagename=linux-headers-$version
+packagename=linux-image-$version_name
+fwpackagename=linux-firmware-image-$version_name
+kernel_headers_packagename=linux-headers-$version_name
 libc_headers_packagename=linux-libc-dev
 dbg_packagename=$packagename-dbg
 
@@ -102,7 +125,7 @@ parisc|mips|powerpc)
 	installed_image_path="boot/vmlinux-$version"
 	;;
 *)
-	installed_image_path="boot/vmlinuz-$version"
+	installed_image_path="boot/$KBUILD_IMAGE"
 esac
 
 BUILD_DEBUG="$(grep -s '^CONFIG_DEBUG_INFO=y' $KCONFIG_CONFIG || true)"
@@ -135,6 +158,8 @@ if [ "$ARCH" = "um" ] ; then
 else
 	cp System.map "$tmpdir/boot/System.map-$version"
 	cp $KCONFIG_CONFIG "$tmpdir/boot/config-$version"
+	mkdir -p "$tmpdir/boot/dtbs"
+	cp -r arch/$ARCH/boot/dts/$SERIES*dhcom*.dtb "$tmpdir/boot/dtbs/"
 fi
 # Not all arches include the boot path in KBUILD_IMAGE
 if [ -e $KBUILD_IMAGE ]; then
@@ -291,9 +316,9 @@ Package: $packagename
 Provides: linux-image, linux-image-2.6, linux-modules-$version
 Suggests: $fwpackagename
 Architecture: any
-Description: Linux kernel, version $version
+Description: Linux kernel, version $version, branch $GIT_BRANCH
  This package contains the Linux kernel, modules and corresponding other
- files, version: $version.
+ files, version: $version, commit date: $GIT_COMMIT_DATE.
 EOF
 
 fi
@@ -332,7 +357,7 @@ if [ -e "$tmpdir/lib/firmware" ]; then
 
 Package: $fwpackagename
 Architecture: all
-Description: Linux kernel firmware, version $version
+Description: Linux kernel firmware, version $version, branch $branch
  This package contains firmware from the Linux kernel, version $version.
 EOF
 

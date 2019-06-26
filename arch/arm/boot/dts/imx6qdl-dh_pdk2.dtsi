@@ -63,9 +63,22 @@
 		status = "okay";
 	};
 
+#ifdef DHCOM_HISPEED
+	mxcfb2: fb@1 {
+		compatible = "fsl,mxc_sdc_fb";
+		disp_dev = "hdmi";
+		interface_pix_fmt = "RGB24";
+		mode_str ="1920x1080M@60";
+		default_bpp = <32>;
+		int_clk = <0>;
+		late_init = <0>;
+		status = "okay";
+	};
+#else
 	mxcfb2: fb@1 {
 		status = "disabled";
 	};
+#endif
 
 	mxcfb3: fb@2 {
 		status = "disabled";
@@ -401,7 +414,7 @@
 };
 
 
-// Interfaces of the DHCOM hispeed connector will be activated here. Baord
+// Interfaces of the DHCOM hispeed connector will be activated here. Board
 // specific configuration can also be made here. This section is only active if
 // you load an hispeed device tree e.g. imx6q-dhcom4H-pdk2
 #ifdef DHCOM_HISPEED
@@ -445,10 +458,31 @@
 };
 #endif
 
+/ {
+	sound-hdmi {
+		status = "okay";
+	};
+};
+
+&hdmi_audio {
+	status = "okay";
+};
+
+&DHCOM_I2C1 {
+	hdmi: edid@50 {
+		status = "okay";
+	};
+};
+
+&hdmi_core {
+	status = "okay";
+};
+
+&hdmi_video {
+	status = "okay";
+};
+
 &pcie {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_dhcom_pcie>;
-	reset-gpio = <&gpio6 14 GPIO_ACTIVE_LOW>;				// GPIO J
 	status = "okay";
 };
 
@@ -461,12 +495,6 @@
 
 &iomuxc {
 	imx6qdl-pdk2_hispeed {
-		pinctrl_dhcom_pcie: pcie_grp {
-			fsl,pins = <
-				MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20 0x1b0b1	// PCIe_WAKE (#148)
-			>;
-		};
-
 		pinctrl_dhcom_enet_1G: enet_1G_grp {				// 1GBit ethernet
 			fsl,pins = <
 				MX6QDL_PAD_ENET_MDIO__ENET_MDIO       0x100b0

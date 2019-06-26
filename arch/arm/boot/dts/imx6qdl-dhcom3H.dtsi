@@ -14,7 +14,44 @@
 // Interfaces of the DHCOM hispeed connector will be configured here with the
 // status "disabled". If you need the interface set it to status "okay" in the
 // corresponding board file.
+/ {
+	sound-hdmi {
+		compatible = "fsl,imx6q-audio-hdmi",
+			     "fsl,imx-audio-hdmi";
+		model = "imx-audio-hdmi";
+		hdmi-controller = <&hdmi_audio>;
+		status = "disabled";
+	};
+};
+
+&hdmi_audio {
+	status = "disabled";
+};
+
+&DHCOM_I2C1 {
+	hdmi: edid@50 {
+		compatible = "fsl,imx6-hdmi-i2c";
+		reg = <0x50>;
+		status = "disabled";
+	};
+};
+
+&hdmi_core {
+	ipu_id = <0>;
+	disp_id = <1>;
+	status = "disabled";
+};
+
+&hdmi_video {
+	fsl,phy_reg_vlev = <0x0294>;
+	fsl,phy_reg_cksymtx = <0x800d>;
+	status = "disabled";
+};
+
 &pcie {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_dhcom_pcie>;
+	reset-gpio = <&gpio6 14 GPIO_ACTIVE_LOW>;				// GPIO J
 	status = "disabled";
 };
 
@@ -24,3 +61,13 @@
 	status = "disabled";
 };
 #endif
+
+&iomuxc {
+	imx6qdl-dhcom_hispeed {
+		pinctrl_dhcom_pcie: pcie_grp {
+			fsl,pins = <
+				MX6QDL_PAD_CSI0_DATA_EN__GPIO5_IO20 0x1b0b1	// PCIe_WAKE (#148)
+			>;
+		};
+	};
+};

@@ -172,6 +172,7 @@ struct _gckHARDWARE
     gctBOOL                     endAfterFlushMmuCache;
 
     gctUINT32                   minFscaleValue;
+    gctUINT32                   maxFscaleValue;
 
     gctPOINTER                  pendingEvent;
 

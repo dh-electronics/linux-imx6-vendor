@@ -58,6 +58,7 @@
 #if VIVANTE_PROFILER_CONTEXT
 #include "gc_hal_kernel_context.h"
 #endif
+#include <linux/moduleparam.h>
 
 #define gcdDISABLE_FE_L2    1
 
@@ -84,6 +85,10 @@
                 = gcmSETFIELDVALUE(0, STALL_STALL, SOURCE, FRONT_END) \
                 | gcmSETFIELDVALUE(0, STALL_STALL, DESTINATION, PIXEL_ENGINE); \
         } while(0)
+
+/* viv_gpu_clk: 64 means full clock, 32 means half clock */
+static int viv_gpu_clk = (-1);
+core_param(viv_gpu_clk, viv_gpu_clk, int, 0444);
 
 typedef struct _gcsiDEBUG_REGISTERS * gcsiDEBUG_REGISTERS_PTR;
 typedef struct _gcsiDEBUG_REGISTERS
@@ -1221,8 +1226,17 @@ gckHARDWARE_Construct(
     hardware->lastWaitLink    = ~0U;
     hardware->lastEnd         = ~0U;
     hardware->globalSemaphore = gcvNULL;
+    hardware->maxFscaleValue  = 64;
 #if gcdENABLE_FSCALE_VAL_ADJUST
     hardware->powerOnFscaleVal = 64;
+    /* Overwrite powerOnFscaleVal by boot parameter viv_gpu_clk */
+    if (hardware->type == gcvHARDWARE_3D) {
+        if ((viv_gpu_clk >= 1) && (viv_gpu_clk <= 64)) {
+            hardware->powerOnFscaleVal = viv_gpu_clk;
+            hardware->maxFscaleValue = viv_gpu_clk;
+            gckOS_Print("Set GPU3D clock to %d/64 clock\n", hardware->powerOnFscaleVal);
+        }
+    }
 #endif
 
     gcmkONERROR(gckOS_CreateMutex(Os, &hardware->powerMutex));
@@ -5737,7 +5751,7 @@ gckHARDWARE_SetFscaleValue(
 
     gcmkHEADER_ARG("Hardware=0x%x FscaleValue=%d", Hardware, FscaleValue);
 
-    gcmkVERIFY_ARGUMENT(FscaleValue > 0 && FscaleValue <= 64);
+    gcmkVERIFY_ARGUMENT(FscaleValue > 0 && FscaleValue <= Hardware->maxFscaleValue);
 
     gcmkONERROR(
         gckOS_AcquireMutex(Hardware->os, Hardware->powerMutex, gcvINFINITE));
@@ -5824,7 +5838,7 @@ gckHARDWARE_GetFscaleValue(
 {
     *FscaleValue = Hardware->powerOnFscaleVal;
     *MinFscaleValue = Hardware->minFscaleValue;
-    *MaxFscaleValue = 64;
+    *MaxFscaleValue = Hardware->maxFscaleValue;
 
     return gcvSTATUS_OK;
 }
@@ -5835,7 +5849,7 @@ gckHARDWARE_SetMinFscaleValue(
     IN gctUINT MinFscaleValue
     )
 {
-    if (MinFscaleValue >= 1 && MinFscaleValue <= 64)
+    if (MinFscaleValue >= 1 && MinFscaleValue <= Hardware->maxFscaleValue)
     {
         Hardware->minFscaleValue = MinFscaleValue;
     }

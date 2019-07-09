@@ -112,6 +112,10 @@ extern int unregister_thermal_notifier(struct notifier_block *nb);
 static int initgpu3DMinClock = 1;
 module_param(initgpu3DMinClock, int, 0644);
 
+/* viv_gpu_reduced_clk: 1 means 1/64 clock, 2 means 2/64 clock, ... */
+static int viv_gpu_reduced_clk = (-1);
+core_param(viv_gpu_reduced_clk, viv_gpu_reduced_clk, int, 0444);
+
 struct platform_device *pdevice;
 
 #ifdef CONFIG_GPU_LOW_MEMORY_KILLER
@@ -292,6 +296,9 @@ static int thermal_hot_pm_notify(struct notifier_block *nb, unsigned long event,
 
     if (event && !bAlreadyTooHot) {
         gckHARDWARE_GetFscaleValue(hardware,&orgFscale,&minFscale, &maxFscale);
+        /* Overwrite minFscale by boot parameter viv_gpu_reduced_clk */
+        if ((viv_gpu_reduced_clk >= 1) && (viv_gpu_reduced_clk <= 64))
+            minFscale = viv_gpu_reduced_clk;
         gckHARDWARE_SetFscaleValue(hardware, minFscale);
         bAlreadyTooHot = gcvTRUE;
         gckOS_Print("System is too hot. GPU3D will work at %d/64 clock.\n", minFscale);
